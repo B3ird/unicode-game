@@ -1,5 +1,4 @@
-# unicode-game
-Unicode game
+# UNICODE GAME
 
 A small sandbox game into your terminal...
 
@@ -13,6 +12,6 @@ Installation
 - Launch a new terminal
 - Move to game directory
 - Enter the following command : 
-  npm i -S simplex-noise
+```npm i -S simplex-noise```
 - Start the game like this : 
-  node run.js
+```node run.js```
