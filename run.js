@@ -39,13 +39,26 @@ var womanFace = "\uD83D\uDC69";
 var womanBody1 = "\uD83D\uDE4E";
 var womanBody2 = "\uD83D\uDE4D";
 var womanBlocked = "🙅";
+var womanHello = "🙋";
+var womanUse = "🙇";
+var womanAsk = "💁";
 var axe = "\uD83E\uDE93";
 
 var emoji = true;
 
+var playerTalk = true;
+var playerAsk = false;
+var playerUse = false;
+
 function getPlayerSprites() {
-    if (playerBlocked){
+    if (playerBlocked) {
         playerSprites = [womanBlocked];
+    } else if (playerUse) {
+		playerSprites = [womanUse];
+    } else if (playerAsk) {
+		playerSprites = [womanAsk];
+    } else if (playerTalk) {
+		playerSprites = [womanHello];
     } else {
         playerSprites = [womanBody1,womanBody2];
     }
@@ -94,16 +107,18 @@ var playerX = -0.25;
 var playerY = -0.25;
 var projectionPlayerX = 0;
 var projectionPlayerY = 0;
-var playerMoveApplied = true;
+var playerMoveAllowed = false;
+var playerMoveApplied = false;
+var use = false;
 
 //RENDERING
 var frame = 0;
 var rendered = true;
 var showMenu = true;
 var introScroll = 0;
-var showIntro = true; //true
+var showIntro = false; //true
 var timeIntro = 2000; //ms
-var showDialog = true;
+var showDialog = false;
 var showGame = false;
 var showEmojis = false;
 
@@ -114,14 +129,10 @@ var welcome = [];
 welcome[0] = womanFace + " Hello ! My name is Jane, ";
 welcome[1] = "let's discover this world ! ";
 dialog.push(welcome);
-
-var firstStep = [];
-firstStep[0] = "Where do you want to go ?   ";
-dialog.push(firstStep);
-
+showDialog = true;
 
 var mapTile;
-function getScreenTile(x, y){ //get tile info from screen x y coord
+function getScreenTile(x, y) { //get tile info from screen x y coord
     var mapTile = mapSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
     mapTile += 0.5 * mapSimplex.noise2D(2*(x+cameraX)/scale, 2*(y+cameraY)/scale);
     mapTile += 0.25 * mapSimplex.noise2D(4*(x+cameraX)/scale, 2*(y+cameraY)/scale);
@@ -130,13 +141,19 @@ function getScreenTile(x, y){ //get tile info from screen x y coord
     return mapTile;
 }
 
-function getMapTile(x, y){ //get tile info from map x y coord
+function getMapTile(x, y) { //get tile info from map x y coord
     var mapTile = mapSimplex.noise2D(x/scale, y/scale);
     mapTile += 0.5 * mapSimplex.noise2D(2*x/scale, 2*y/scale);
     mapTile += 0.25 * mapSimplex.noise2D(4*x/scale, 2*y/scale);
     if (mapTile < 0) { mapTile *= -1;}
     mapTile = Math.pow(mapTile, 0.4);
     return mapTile;
+}
+
+function getMapFoliage(x, y) {
+	var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
+	if (mapFoliage < 0) { mapFoliage *= -1;}
+	return mapFoliage;
 }
 
 var logs = "";
@@ -197,14 +214,14 @@ function render(){
             lines.push(gradientBlack+"             EMOJIS             "+fullscreenMarge);
             lines.push(red+gradientBlack+"check your terminal compatibilty"+fullscreenMarge);
             lines.push(gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-            lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷   ║"+fullscreenMarge);
+            lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
             lines.push(gradientBlack+"║🛏 🚪                          ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║🪓 ⛏ 🔨                        ║"+fullscreenMarge);
+            lines.push(gradientBlack+"║🪓 ⛏ 🔨                       ║"+fullscreenMarge);
             lines.push(gradientBlack+"║📘 📃                         ║"+fullscreenMarge);
             lines.push(gradientBlack+"║🎒 👕 👖 🧤 🧥 🧦             ║"+fullscreenMarge);
             lines.push(gradientBlack+"║🎁                            ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║🔥 💧 🩸                       ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║⛵ 🛶 🚗 🚚                    ║"+fullscreenMarge);
+            lines.push(gradientBlack+"║🔥 💧 🩸                      ║"+fullscreenMarge);
+            lines.push(gradientBlack+"║⛵ 🛶 🚗 🚚                   ║"+fullscreenMarge);
             lines.push(gradientBlack+"║🥩                            ║"+fullscreenMarge);
             lines.push(gradientBlack+"║🌳 🌲 🌴 🌵 🎄                ║"+fullscreenMarge);
             lines.push(gradientBlack+"║🐈 🐖 🐟                      ║"+fullscreenMarge);
@@ -212,14 +229,14 @@ function render(){
         } else if (showMenu) { //display menu
             lines.push(green+gradientBlack+"                                "+fullscreenMarge);
             lines.push(gradientBlack+"           UNICODE GAME         "+fullscreenMarge);
-            lines.push(red+gradientBlack+"         by B3ird 22.03.20      "+fullscreenMarge);
+            lines.push(red+gradientBlack+"  by B3ird 22.03.20 -> 26.05.21 "+fullscreenMarge);
             lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Press escape to show menu   ║"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Use arrow to move player    ║"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Press 'P' to show the map   ║"+fullscreenMarge);
             lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ Debug                        ║"+fullscreenMarge);
+            lines.push(gradientBlack+"║ -Press 'i' to check compat   ║"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Press '5' to center camera  ║"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Press 'O' to disable emojis ║"+fullscreenMarge);
             lines.push(gradientBlack+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
@@ -230,40 +247,16 @@ function render(){
             for(var y = 0; y < screenHeight; y++) { 
                 var line="";
                 for(var x = 0; x < screenWidth; x++) {
-                    
-                    //deep map
-                    mapTile = getScreenTile(x,y);
-
-                    //items map
-                    var mapItem = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
-                    if (mapItem < 0) { mapItem *= -1;}
-
-                    //foliage
-                    var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
-                    if (mapFoliage < 0) { mapFoliage *= -1;}
-
-                    if (projectionPlayerX == (x+cameraX) && projectionPlayerY == (y+cameraY)){
-                        frame++;
-                        line += renderPixel(mapTile, true)+playerSprites[frame%playerSprites.length]+reset;
-                    } else {
-                        var i = renderItem(mapItem);
-                        if (i != ""){
-                            line += renderPixel(mapTile, true)+i+reset;
-                        } else {
-                            var f = renderFoliage(mapTile, mapFoliage);
-                            if (f != ""){
-                                line += renderPixel(mapTile, true)+f+reset;
-                            } else {
-                                line += renderPixel(mapTile, false)+reset;
-                            }
-                        }
-                    }
+                    line += renderScreenPixel(x, y);
                 }
                 lines.push(line);
             }
 
+            frame++;
+
             if (showDialog){
-                if (dialogIndex<=dialog.length-1){
+                if (dialogIndex<=dialog.length-1) {
+                	playerMoveAllowed = false;
                     var message = dialog[dialogIndex];
                     //footer
                     var footerLines = 2;
@@ -287,17 +280,24 @@ function render(){
                         lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════╗";    
                     }
                     
+                } else {
+                	showDialog = false;
+                	playerMoveAllowed = true;
+                	playerTalk = false;
+                	playerBlocked = false;
+                	playerAsk = false;
+                	playerUse = false;
+                	use = false;
                 }
             }
         }
+
+        playerMoveApplied = true;
 
         //display screen
         for (var l=0; l<lines.length;l++){
             ui += gradientGrey0+"  "+gradientGrey103+"  "+lines[l]+gradientGrey103+"  "+gradientGrey0+"  \n";   
         }
-
-        playerMoveApplied = true;
-        //console.log(screen);
 
         if (!fullscreen){
             ui += gradientGrey0+"  "+gradientGrey103+"                                    "+gradientGrey0+"  \n";
@@ -419,6 +419,36 @@ var gradientBlack = "\u001b[48;5;232m";
 //reset color
 var reset = "\u001b[0m";
 
+function renderScreenPixel(x, y, showPlayer = true) { //all layers
+	//deep map
+    mapTile = getScreenTile(x,y);
+
+    //items map
+    // var mapItem = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
+    // if (mapItem < 0) { mapItem *= -1;}
+
+    //foliage
+    var mapFoliage = getMapFoliage(x, y);
+    // var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
+    // if (mapFoliage < 0) { mapFoliage *= -1;}
+
+    if (showPlayer && projectionPlayerX == (x+cameraX) && projectionPlayerY == (y+cameraY)){
+        return renderMap(mapTile, true)+playerSprites[frame%playerSprites.length]+reset;
+    } else {
+        // var i = renderItem(mapItem);
+        // if (i != ""){
+            // return renderMap(mapTile, true)+i+reset;
+        // } else {
+            var f = renderFoliage(mapTile, mapFoliage);
+            if (f != ""){
+                return renderMap(mapTile, true)+f+reset;
+            } else {
+                return renderMap(mapTile, false)+reset;
+            }
+        // }
+    }
+}
+
 function renderFoliage(mapTile, mapFoliage){
     var foliage = "";
     if (0.65 <= mapTile && mapTile < 0.75){
@@ -446,7 +476,7 @@ function renderItem(val){
     return item;
 }
 
-function renderPixel(val, background){
+function renderMap(val, background){
     var color = "";
 
     //0 to +99
@@ -537,34 +567,61 @@ function catchKeys(){
 }
 catchKeys();
 
+function playerAction() {
+	if(!use){
+		use = true;
+		//get player screen pixel coordinate
+		var x = projectionPlayerX-cameraX;
+		var y = projectionPlayerY-cameraY;
+
+		//talk about it
+		var useDialog = [];
+		useDialog[0] = " What do you want to do ? "+renderScreenPixel(x,y, false)+gradientBlack;
+		useDialog[1] = "                            ";
+	    dialog.push(useDialog);
+	    playerAsk = true;
+	    showDialog = true;
+	}
+}
+
 var playerBlocked = false;
 function playerCanMoveTo(direction) {
-    playerBlocked = false;
-    var x = projectionPlayerX;
-    var y = projectionPlayerY;
-    switch (direction){
-        case "up":
-            y--;
-            break;
-        case "left":
-            x--;
-            break;
-        case "right":
-            x++;
-            break;
-        case "down":
-            y++;
-            break;
-    }
-    var canMove = false;
-    var val = getMapTile(x,y);
-    
-    test = x+","+y+" -> "+val;
-    if (0.35 <= val && val <= 0.95){
-        canMove = true;
-    } else {
-        playerBlocked = true;
-    }
+	var canMove = false;
+	if (playerMoveAllowed && playerMoveApplied && !displayMap) {
+	    playerBlocked = false;
+	    var x = projectionPlayerX;
+	    var y = projectionPlayerY;
+	    switch (direction){
+	        case "up":
+	            y--;
+	            break;
+	        case "left":
+	            x--;
+	            break;
+	        case "right":
+	            x++;
+	            break;
+	        case "down":
+	            y++;
+	            break;
+	    }
+	    
+	    var val = getMapTile(x,y);
+	    
+	    test = x+","+y+" -> "+val;
+	    if (0.35 <= val && val <= 0.95){
+	        canMove = true;
+	    } else {
+	        playerBlocked = true;
+	        //talk about it
+	        playerMoveAllowed = false;
+	        var firstBlock = [];
+			firstBlock[0] = womanFace + " Oh, the way is blocked   ";
+			firstBlock[1] = "I can't go further...       ";
+	        dialog.push(firstBlock);
+	        showDialog = true;
+	    }
+	}
     return canMove;
 }
 
@@ -572,6 +629,7 @@ function inputListener(key) {
     var factor = 1/scale;
     switch(key) {
         case space:
+        	playerAction()
             break;
         case ctrlc:
             process.exit();
@@ -593,34 +651,26 @@ function inputListener(key) {
         //player
         case up:
             if (playerCanMoveTo("up")){
-                if (!displayMap && playerMoveApplied){
-                    playerY -= factor;
-                    playerMoveApplied = false;
-                }
+                playerY -= factor;
+                playerMoveApplied = false;
             }
             break;
         case down:
             if (playerCanMoveTo("down")){
-                if (!displayMap && playerMoveApplied){
-                    playerY += factor;
-                    playerMoveApplied = false;
-                }
+                playerY += factor;
+                playerMoveApplied = false;
             }
             break;
         case left:
             if (playerCanMoveTo("left")){
-                if (!displayMap && playerMoveApplied){
-                    playerX -= factor;
-                    playerMoveApplied = false;
-                }
+                playerX -= factor;
+                playerMoveApplied = false;
             }
             break;
         case right:
             if (playerCanMoveTo("right")){
-                if (!displayMap && playerMoveApplied){
-                    playerX += factor;
-                    playerMoveApplied = false;
-                }
+                playerX += factor;
+                playerMoveApplied = false;
             }
             break;
         //settings
@@ -641,6 +691,9 @@ function inputListener(key) {
         case "2": //down
             cameraY++;
             break;
+        case "i":
+        	showEmojis = !showEmojis;
+        	break;
         case "f":
             fullscreen = !fullscreen;
             if (fullscreen) {
