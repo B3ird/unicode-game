@@ -29,13 +29,14 @@ var cameraX = 0;
 var cameraY = 0;
 
 //Sprites
-var playerSprites;
-var treeSprite;
-var pineSprite;
-var heartSprite;
-var appleSprite;
+var treeSprite = "🌳";
+var pineSprite = "🌲";
+var heartSprite = " ❤";
+var appleSprite = "🍎"
 var cactus = "🌵";
+
 //player sprites
+var playerSprites;
 var playerFace = "🧑";
 var playerBody1 = "\uD83D\uDE4E";
 var playerBody2 = "\uD83D\uDE4D";
@@ -55,35 +56,18 @@ var playerAsk = false;
 var playerUse = false;
 
 function getPlayerSprites() {
-	if (showMap) {
+    if (currentScreen == MAPSCREEN) {
         playerSprites = [playerMap,playerMap2];
     } else if (playerBlocked) {
         playerSprites = [playerRefusing];
     } else if (playerUse) {
-		playerSprites = [playerUsing];
+        playerSprites = [playerUsing];
     } else if (playerAsk) {
-		playerSprites = [playerAsking];
+        playerSprites = [playerAsking];
     } else if (playerTalk) {
-		playerSprites = [playerGreeting];
+        playerSprites = [playerGreeting];
     } else {
         playerSprites = [playerBody1,playerBody2];
-    }
-}
-
-
-function initSprites() {
-    if (emoji){
-        //playerSprites = [playerBody1,playerBody2];
-        treeSprite = "🌳";
-        pineSprite = "🌲";
-        heartSprite = " ❤";
-        appleSprite = "🍎"
-    } else {
-        playerSprites = [red+"☺ "+reset,red+"☻ "+reset];
-        heartSprite = red+"♥ ";
-        treeSprite = darkGreen+"^^"+reset;
-        pineSprite = darkGreen+"/\\"+reset;
-        appleSprite = red+"● "+reset
     }
 }
 
@@ -121,14 +105,28 @@ var use = false;
 var frame = 0;
 var rendered = true;
 var introScroll = 0;
-var showIntro = true; //true
 var timeIntro = 2000; //ms
 var showDialog = false;
-var showGame = false;
-var showOptions = false;
-var showHome = true;
-var showEmojis = false;
-var showAbout = false;
+
+//SCREENS
+const INTROSCREEN = "introduction_screen";
+const HOMESCREEN = "home_screen";
+const GAMESCREEN = "game_screen";
+const OPTIONSCREEN = "option_screen";
+const ABOUTSCREEN = "about_screen";
+const INVENTORYSCREEN = "inventory_screen";
+const COMPATSCREEN = "compatibilty_screen"
+const MAPSCREEN = "map_screen"
+var currentScreen = HOMESCREEN;
+
+// var showMap = false;
+// var showIntro = false; //true
+// var showHome = true;
+// var showGame = false;
+// var showOptions = false;
+// var showEmojis = false;
+// var showAbout = false;
+// var showInventory = false;
 
 //DIALOGS
 var dialogIndex = 0;
@@ -159,9 +157,9 @@ function getMapTile(x, y) { //get tile info from map x y coord
 }
 
 function getMapFoliage(x, y) {
-	var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
-	if (mapFoliage < 0) { mapFoliage *= -1;}
-	return mapFoliage;
+    var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
+    if (mapFoliage < 0) { mapFoliage *= -1;}
+    return mapFoliage;
 }
 
 var logs = "";
@@ -199,145 +197,174 @@ function render(){
 
         var lines = [];
 
-        if (showIntro) { //display animated intro
-            for (var i=0; i<screenHeight;i++){
-                if (i==Math.floor(introScroll)){
-                    lines.push(black+gradientWhite0+"             B3IRD ®            "+fullscreenMarge);        
-                } else {
-                    lines.push(gradientWhite0+"                                "+fullscreenMarge);        
-                }
-            }
-            if (introScroll<screenHeight/2) {
-                introScroll+=0.4;
-            } else {
-                if (timeIntro<=0){
-                    showIntro = false;
-                    showOptions = true;
-                }
-                timeIntro -= 1000/fps;
-            }
-        } else if (showEmojis) { //display emojis
-            lines.push(green+gradientBlack+" EMOJIS    "+red+"compatibilty checker "+fullscreenMarge);
-            lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-            lines.push(gradientBlack+"║Player                        ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║Items                         ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║🪓 ⛏ 🔨                       ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║Interface                     ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║❤️ 💔                          ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║Animals                       ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║🐈 🐖 🐟                      ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║Environment                   ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║🌳 🌲 🌴 🌵 🎄                ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-            lines.push(gradientBlack+"                          Enter "+fullscreenMarge+reset);
-        } else if (showHome) { //display menu
-            lines.push(gradientBlack+"                                "+fullscreenMarge);
-            lines.push(red+gradientBlack+"             UNICODE            "+fullscreenMarge);
-            lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║    🧒 PLAY ("+green+"Enter"+white+")           ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║    ⚙️  Options ("+green+"O"+white+")            ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║    📄 About ("+green+"A"+white+")              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-            lines.push(gradientBlack+"      "+brightBlack+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
-        } else if (showOptions) { //display options
-            lines.push(green+gradientBlack+" Commands                       "+fullscreenMarge);
-            lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-            lines.push(gradientBlack+"║ INGAME                       ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Use arrow to move player    ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press space to use something║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press 'M' to show the map   ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press escape to back home   ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ DEBUG                        ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press 'I' to check compat   ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press '5' to center camera  ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ -Use numpad to move camera   ║"+fullscreenMarge);
-            lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-            lines.push(gradientBlack+"                          Enter "+fullscreenMarge+reset);
-        } else if (showAbout) { //display about
-            lines.push(red+gradientBlack+"             ABOUT              "+fullscreenMarge);
-            lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-            lines.push(gradientBlack+"║ 🙋 Hello and welcome !       ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ I'm B3ird                    ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ the dev of this small game.  ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ It was a challenge for me to ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ make a colorfull 2D game in  ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ a terminal command.          ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ I hope you liked it !        ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║ Stay tuned for next update ! ║"+fullscreenMarge);
-            lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-            lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-            lines.push(gradientBlack+"                          Enter "+fullscreenMarge+reset);
-        } else /*if (showGame)*/ { //display game
-            for(var y = 0; y < screenHeight; y++) { 
-                var line="";
-                for(var x = 0; x < screenWidth; x++) {
-                    line += renderScreenPixel(x, y);
-                }
-                lines.push(line);
-            }
-
-            //ui
-            if (fullscreen){
-                lines[0] = gradientBlack+"❤️ ❤️ 💔                                                          ";
-            } else {
-                lines[0] = gradientBlack+"❤️ 💔💔                          ";
-            }
-
-            frame++;
-// 
-            if (showDialog){
-                if (dialogIndex<=dialog.length-1) {
-                	playerMoveAllowed = false;
-                    var message = dialog[dialogIndex];
-                    //footer
-                    var footerLines = 2;
-                    if (fullscreen){
-                        lines[lines.length-2] = gradientBlack+"║                                                        Enter ║";
-                        lines[lines.length-1] = gradientBlack+"╚══════════════════════════════════════════════════════════════╝";
+        switch(currentScreen) {
+            case INTROSCREEN :
+                for (var i=0; i<screenHeight;i++){
+                    if (i==Math.floor(introScroll)){
+                        lines.push(black+gradientWhite0+"             B3IRD ®            "+fullscreenMarge);        
                     } else {
-                        lines[lines.length-2] = gradientBlack+"║                        Enter ║";
-                        lines[lines.length-1] = gradientBlack+"╚══════════════════════════════╝";
+                        lines.push(gradientWhite0+"                                "+fullscreenMarge);        
                     }
-
-                    //body
-                    for (var d=0; d<message.length;d++){
-                        lines[lines.length-1-d-footerLines] = gradientBlack+"║ "+message[message.length-1-d]+fullscreenMarge+" ║";
-                    }
-
-                    //header
-                    if (fullscreen){
-                        lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════════════════════════════════════╗";    
-                    } else {
-                        lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════╗";    
-                    }
-                    
-                } else {
-                	showDialog = false;
-                	playerMoveAllowed = true;
-                	playerTalk = false;
-                	playerBlocked = false;
-                	playerAsk = false;
-                	playerUse = false;
-                	use = false;
                 }
-            }
+                if (introScroll<screenHeight/2) {
+                    introScroll+=0.4;
+                } else {
+                    if (timeIntro<=0){
+                        currentScreen = HOMESCREEN;
+                        // showIntro = false;
+                        // showOptions = true;
+                    }
+                    timeIntro -= 1000/fps;
+                }
+                break;
+            case COMPATSCREEN : //display emojis test
+                lines.push(green+gradientBlack+" EMOJIS    "+red+"compatibilty checker "+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║Player                        ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║Items                         ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║🪓 ⛏ 🔨                       ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║Interface                     ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║❤️ 💔                          ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║Animals                       ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║🐈 🐖 🐟                      ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║Environment                   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║🌳 🌲 🌴 🌵 🎄                ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
+                lines.push(gradientBlack+"                         Escape "+fullscreenMarge+reset);
+                break;
+            case HOMESCREEN:
+                lines.push(gradientBlack+"                                "+fullscreenMarge);
+                lines.push(red+gradientBlack+"             UNICODE            "+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║    🧒 "+green+"P"+white+"lay                   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║    ⚙️  "+green+"O"+white+"ptions                ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║    📄 "+green+"A"+white+"bout                  ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
+                lines.push(gradientBlack+"      "+brightBlack+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
+                break;
+            case INVENTORYSCREEN:
+                lines.push(red+gradientBlack+"            Inventory           "+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║              🍎              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
+                break;
+            case OPTIONSCREEN:
+                lines.push(green+gradientBlack+" <           Options            "+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║ INGAME                       ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Use arrow to move player    ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press space to use something║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press 'M' to show the map   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press escape to back home   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press '5' to center camera  ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Use numpad to move camera   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ DEBUG                        ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press 'I' to check compat   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
+                lines.push(gradientBlack+"                         Escape "+fullscreenMarge+reset);
+                break;
+            case ABOUTSCREEN:
+                lines.push(red+gradientBlack+"             ABOUT              "+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║ 🙋 Hello and welcome !       ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ I'm B3ird                    ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ the dev of this small game.  ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ It was a challenge for me to ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ make a colorfull 2D game in  ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ a terminal command.          ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ I hope you liked it !        ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ Stay tuned for next update ! ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
+                lines.push(gradientBlack+"                         Escape "+fullscreenMarge+reset);
+                break;
+            case GAMESCREEN:
+            case MAPSCREEN:
+                for(var y = 0; y < screenHeight; y++) { 
+                    var line="";
+                    for(var x = 0; x < screenWidth; x++) {
+                        line += renderScreenPixel(x, y);
+                    }
+                    lines.push(line);
+                }
+
+                //HUD
+                if (currentScreen != MAPSCREEN) {
+                    if (fullscreen){
+                        lines[0] = gradientBlack+"❤️ ❤️ 💔                                                          ";
+                    } else {
+                        lines[0] = gradientBlack+"❤️ 💔💔                          ";
+                    }
+                }
+
+                frame++;
+    // 
+                if (currentScreen != MAPSCREEN && showDialog){
+                    if (dialogIndex<=dialog.length-1) {
+                        playerMoveAllowed = false;
+                        var message = dialog[dialogIndex];
+                        //footer
+                        var footerLines = 2;
+                        if (fullscreen){
+                            lines[lines.length-2] = gradientBlack+"╚══════════════════════════════════════════════════════════════╝";
+                            lines[lines.length-1] = gradientBlack+"                                                          Enter ";
+                        } else {
+                            lines[lines.length-2] = gradientBlack+"╚══════════════════════════════╝";
+                            lines[lines.length-1] = gradientBlack+"                          Enter ";
+                        }
+
+                        //body
+                        for (var d=0; d<message.length;d++){
+                            lines[lines.length-1-d-footerLines] = gradientBlack+"║ "+message[message.length-1-d]+fullscreenMarge+" ║";
+                        }
+
+                        //header
+                        if (fullscreen){
+                            lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════════════════════════════════════╗";    
+                        } else {
+                            lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════╗";    
+                        }
+                        
+                    } else {
+                        showDialog = false;
+                        playerMoveAllowed = true;
+                        playerTalk = false;
+                        playerBlocked = false;
+                        playerAsk = false;
+                        playerUse = false;
+                        use = false;
+                    }
+                }
+                break;
         }
 
         playerMoveApplied = true;
@@ -362,7 +389,7 @@ function render(){
             ui += gradientGrey1+"                                "+gradientGrey1+"  "+backgroundBlack+"\n";
         } else {
             ui += gradientGrey0+"  "+gradientGrey103+"                                                                    "+gradientGrey0+"  \n";
-            ui += gradientGrey0+"  "+blue+"Unicode GAME TUX™                                                     \n";
+            ui += gradientGrey0+"  "+blue+"B3IRD BOY™                                                            \n";
         }
         ui += reset;
 
@@ -383,7 +410,6 @@ var renderClock;
 var clock = 0;
 var fps = 10;
 function start(){
-    initSprites();
     clearInterval(renderClock);
     renderClock = setInterval(render,clock);
 }
@@ -468,7 +494,7 @@ var gradientBlack = "\u001b[48;5;232m";
 var reset = "\u001b[0m";
 
 function renderScreenPixel(x, y, showPlayer = true) { //all layers
-	//deep map
+    //deep map
     mapTile = getScreenTile(x,y);
 
     //items map
@@ -602,7 +628,7 @@ var plus = "+";
 var minus = "-";
 var esc = "\u001B";
 
-var showMap = false;
+
 
 function catchKeys(){
     var stdin = process.stdin;
@@ -616,60 +642,60 @@ function catchKeys(){
 catchKeys();
 
 function playerAction() {
-	if(!use){
-		use = true;
-		//get player screen pixel coordinate
-		var x = projectionPlayerX-cameraX;
-		var y = projectionPlayerY-cameraY;
+    if(!use){
+        use = true;
+        //get player screen pixel coordinate
+        var x = projectionPlayerX-cameraX;
+        var y = projectionPlayerY-cameraY;
 
-		//talk about it
-		var useDialog = [];
-		useDialog[0] = " What can I do with "+renderScreenPixel(x,y, false)+gradientBlack+" ?    ";
-		useDialog[1] = "                            ";
-	    dialog.push(useDialog);
-	    playerAsk = true;
-	    showDialog = true;
-	}
+        //talk about it
+        var useDialog = [];
+        useDialog[0] = " What can I do with "+renderScreenPixel(x,y, false)+gradientBlack+" ?    ";
+        useDialog[1] = "                            ";
+        dialog.push(useDialog);
+        playerAsk = true;
+        showDialog = true;
+    }
 }
 
 var playerBlocked = false;
 function playerCanMoveTo(direction) {
-	var canMove = false;
-	if (playerMoveAllowed && playerMoveApplied && !showMap) {
-	    playerBlocked = false;
-	    var x = projectionPlayerX;
-	    var y = projectionPlayerY;
-	    switch (direction){
-	        case "up":
-	            y--;
-	            break;
-	        case "left":
-	            x--;
-	            break;
-	        case "right":
-	            x++;
-	            break;
-	        case "down":
-	            y++;
-	            break;
-	    }
-	    
-	    var val = getMapTile(x,y);
-	    
-	    test = x+","+y+" -> "+val;
-	    if (0.35 <= val && val <= 0.95){
-	        canMove = true;
-	    } else {
-	        playerBlocked = true;
-	        //talk about it
-	        playerMoveAllowed = false;
-	        var firstBlock = [];
-			firstBlock[0] = playerFace + " Oh, the way is blocked   ";
-			firstBlock[1] = "I can't go further...       ";
-	        dialog.push(firstBlock);
-	        showDialog = true;
-	    }
-	}
+    var canMove = false;
+    if (playerMoveAllowed && playerMoveApplied && currentScreen == GAMESCREEN) {
+        playerBlocked = false;
+        var x = projectionPlayerX;
+        var y = projectionPlayerY;
+        switch (direction){
+            case "up":
+                y--;
+                break;
+            case "left":
+                x--;
+                break;
+            case "right":
+                x++;
+                break;
+            case "down":
+                y++;
+                break;
+        }
+        
+        var val = getMapTile(x,y);
+        
+        test = x+","+y+" -> "+val;
+        if (0.35 <= val && val <= 0.95){
+            canMove = true;
+        } else {
+            playerBlocked = true;
+            //talk about it
+            playerMoveAllowed = false;
+            var firstBlock = [];
+            firstBlock[0] = playerFace + " Oh, the way is blocked   ";
+            firstBlock[1] = "I can't go further...       ";
+            dialog.push(firstBlock);
+            showDialog = true;
+        }
+    }
     return canMove;
 }
 
@@ -677,27 +703,45 @@ function inputListener(key) {
     var factor = 1/scale;
     switch(key) {
         case space:
-        	playerAction()
+            playerAction()
             break;
         case ctrlc:
             process.exit();
             break;
         case enter:
-            if (showHome || showOptions || showEmojis || showAbout) {
-            	showEmojis = false;
-                showHome = false;
-                showOptions = false;
-                showAbout = false;
-                showGame = true;
-            } else if (showGame) {
+            //TODO manage enter on all screens
+            if (currentScreen == GAMESCREEN) {
                 if (showDialog) {
                     dialogIndex++;
-                    //showDialog = false;
                 }
+            }
+            switch(currentScreen){
+                case HOMESCREEN:
+                    currentScreen = GAMESCREEN;
+                    break;
+                case GAMESCREEN :
+                    if (showDialog) {
+                        dialogIndex++;
+                    }
+                    break;
             }
             break;
         case esc:
-            showHome = !showHome;
+            switch(currentScreen){
+                case COMPATSCREEN:
+                    currentScreen = OPTIONSCREEN;
+                    break;
+                default :
+                    currentScreen = HOMESCREEN;
+                    break;
+            }
+            break;
+        case "p":
+            switch(currentScreen){
+                case HOMESCREEN:
+                    currentScreen = GAMESCREEN;
+                    break;
+            }
             break;
         //player
         case up:
@@ -726,20 +770,16 @@ function inputListener(key) {
             break;
         //options
         case "o":
-        	showHome = false;
-        	showAbout = false;
-            showOptions = !showOptions;
+            if (currentScreen == HOMESCREEN) {
+                currentScreen = OPTIONSCREEN;
+            }
             break;
         //about
         case "a":
-        	showHome = false;
-        	showOptions = false;
-            showAbout = !showAbout;
+            if (currentScreen == HOMESCREEN) {
+                currentScreen = ABOUTSCREEN;
+            }
             break;
-        case "old":
-        	emoji = !emoji;
-            initSprites();
-        	break;
         //camera
         case "4"://left
             cameraX--;
@@ -754,8 +794,18 @@ function inputListener(key) {
             cameraY++;
             break;
         case "i":
-        	showEmojis = !showEmojis;
-        	break;
+            switch(currentScreen){
+                case OPTIONSCREEN:
+                    currentScreen = COMPATSCREEN;
+                    break;
+                case GAMESCREEN :
+                    currentScreen = INVENTORYSCREEN;
+                    break;
+                case INVENTORYSCREEN :
+                    currentScreen = GAMESCREEN;
+                    break;
+            }
+            break;
         case "f":
             fullscreen = !fullscreen;
             if (fullscreen) {
@@ -769,16 +819,17 @@ function inputListener(key) {
             }
             break;
         case "m"://map
-            if (!showMap){
-                //show map from sky
-                showMap = true;
-                requestCameraCenter = true;
-                scale = minScale;
-            } else {
-                //return to move game
-                scale = maxScale;
-                showMap = false;
-                requestCameraCenter = true;
+            switch(currentScreen){
+                case GAMESCREEN:
+                    scale = minScale;
+                    requestCameraCenter = true;
+                    currentScreen = MAPSCREEN;
+                    break;
+                case MAPSCREEN :
+                    scale = maxScale;
+                    requestCameraCenter = true;
+                    currentScreen = GAMESCREEN;
+                    break;
             }
             break;
         case "5": //center
