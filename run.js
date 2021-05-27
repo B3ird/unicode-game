@@ -121,7 +121,7 @@ var use = false;
 var frame = 0;
 var rendered = true;
 var introScroll = 0;
-var showIntro = false; //true
+var showIntro = true; //true
 var timeIntro = 2000; //ms
 var showDialog = false;
 var showGame = false;
@@ -202,7 +202,7 @@ function render(){
         if (showIntro) { //display animated intro
             for (var i=0; i<screenHeight;i++){
                 if (i==Math.floor(introScroll)){
-                    lines.push(black+gradientWhite0+"          UNICODE GAME®         "+fullscreenMarge);        
+                    lines.push(black+gradientWhite0+"             B3IRD ®            "+fullscreenMarge);        
                 } else {
                     lines.push(gradientWhite0+"                                "+fullscreenMarge);        
                 }
@@ -349,7 +349,7 @@ function render(){
 
         if (!fullscreen){
             ui += gradientGrey0+"  "+gradientGrey103+"                                    "+gradientGrey0+"  \n";
-            ui += gradientGrey0+"  "+blue+"Unicode GAME TUX™                     \n";
+            ui += gradientGrey0+"  "+blue+"B3IRD BOY™                            \n";
             ui += gradientGrey0+"                                        \n";
             ui += gradientGrey0+"      "+white+gradientBlack+"    "+gradientGrey0+"                      "+gradientMagenta+"    "+gradientGrey0+"    \n";
             ui += gradientGrey0+"    "+gradientBlack+"        "+gradientGrey0+"                    "+gradientMagenta+"    "+gradientGrey0+"    \n";
