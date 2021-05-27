@@ -119,15 +119,6 @@ const COMPATSCREEN = "compatibilty_screen"
 const MAPSCREEN = "map_screen"
 var currentScreen = HOMESCREEN;
 
-// var showMap = false;
-// var showIntro = false; //true
-// var showHome = true;
-// var showGame = false;
-// var showOptions = false;
-// var showEmojis = false;
-// var showAbout = false;
-// var showInventory = false;
-
 //DIALOGS
 var dialogIndex = 0;
 var dialog = [];
@@ -218,7 +209,7 @@ function render(){
                 }
                 break;
             case COMPATSCREEN : //display emojis test
-                lines.push(green+gradientBlack+" EMOJIS    "+red+"compatibilty checker "+fullscreenMarge);
+                lines.push(green+gradientBlack+"<          Compatibility        "+fullscreenMarge);
                 lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
                 lines.push(gradientBlack+"║Player                        ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
@@ -232,26 +223,26 @@ function render(){
                 lines.push(gradientBlack+"║🌳 🌲 🌴 🌵 🎄                ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-                lines.push(gradientBlack+"                         Escape "+fullscreenMarge+reset);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
                 break;
             case HOMESCREEN:
-                lines.push(gradientBlack+"                                "+fullscreenMarge);
-                lines.push(red+gradientBlack+"             UNICODE            "+fullscreenMarge);
-                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║    🧒 "+green+"P"+white+"lay                   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║    ⚙️  "+green+"O"+white+"ptions                ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║    📄 "+green+"A"+white+"bout                  ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-                lines.push(gradientBlack+"      "+brightBlack+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
+                lines.push(gradientBlue2+"                                "+fullscreenMarge);
+                lines.push(white+gradientBlue2+"                                "+fullscreenMarge);
+                lines.push(brightWhite+gradientBlue1+"            UNIWORLD            "+fullscreenMarge);
+                lines.push(gradientBlue1+"                                "+fullscreenMarge);
+                lines.push(gradientBlue0+"                                "+fullscreenMarge);
+                lines.push(gradientBlue0+" 🌲🌳🌲  🌲    🌲🌲🌲🌳  🌲🌲   "+fullscreenMarge);
+                lines.push(gradientGreen4+" 🌲              🌲🌲      🌲🌲 "+fullscreenMarge);
+                lines.push(gradientGreen4+" 🌲🌲                           "+fullscreenMarge);
+                lines.push(gradientGreen3+"          🧒 "+red+"P"+black+"lay               "+fullscreenMarge);
+                lines.push(gradientGreen3+"                                "+fullscreenMarge);
+                lines.push(gradientGreen2+"          ⚙️  "+red+"O"+black+"ptions            "+fullscreenMarge);
+                lines.push(gradientGreen2+"                                "+fullscreenMarge);
+                lines.push(gradientGreen1+"          📄 "+red+"A"+black+"bout              "+fullscreenMarge);
+                lines.push(gradientGreen1+"                                "+fullscreenMarge);
+                lines.push(gradientGreen0+"                                "+fullscreenMarge);
+                lines.push(gradientGreen0+"      "+green+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
                 break;
             case INVENTORYSCREEN:
                 lines.push(red+gradientBlack+"            Inventory           "+fullscreenMarge);
@@ -286,11 +277,11 @@ function render(){
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ DEBUG                        ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ -Press 'I' to check compat   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-                lines.push(gradientBlack+"                         Escape "+fullscreenMarge+reset);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
                 break;
             case ABOUTSCREEN:
-                lines.push(red+gradientBlack+"             ABOUT              "+fullscreenMarge);
+                lines.push(red+gradientBlack+"<             ABOUT             "+fullscreenMarge);
                 lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
                 lines.push(gradientBlack+"║ 🙋 Hello and welcome !       ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
@@ -304,8 +295,8 @@ function render(){
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ Stay tuned for next update ! ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge);
-                lines.push(gradientBlack+"                         Escape "+fullscreenMarge+reset);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
                 break;
             case GAMESCREEN:
             case MAPSCREEN:
@@ -333,13 +324,11 @@ function render(){
                         playerMoveAllowed = false;
                         var message = dialog[dialogIndex];
                         //footer
-                        var footerLines = 2;
+                        var footerLines = 1;
                         if (fullscreen){
-                            lines[lines.length-2] = gradientBlack+"╚══════════════════════════════════════════════════════════════╝";
-                            lines[lines.length-1] = gradientBlack+"                                                          Enter ";
+                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════════════════════════════════════Enter╝";
                         } else {
-                            lines[lines.length-2] = gradientBlack+"╚══════════════════════════════╝";
-                            lines[lines.length-1] = gradientBlack+"                          Enter ";
+                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════Enter╝";
                         }
 
                         //body
@@ -349,9 +338,9 @@ function render(){
 
                         //header
                         if (fullscreen){
-                            lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════════════════════════════════════╗";    
+                            lines[lines.length-1-message.length-1] = gradientBlack+"╔══════════════════════════════════════════════════════════════╗";    
                         } else {
-                            lines[lines.length-1-message.length-1-1] = gradientBlack+"╔══════════════════════════════╗";    
+                            lines[lines.length-1-message.length-1] = gradientBlack+"╔══════════════════════════════╗";    
                         }
                         
                     } else {
@@ -465,9 +454,9 @@ var gradientMagenta = "\u001b[48;5;88m"
 
 var gradientRed3 = "\u001b[48;5;124m";
 
-var gradientGreen0 = "\u001b[48;5;10m";
-var gradientGreen1 = "\u001b[48;5;2m";
-var gradientGreen2 = "\u001b[48;5;34m";
+var gradientGreen0 = "\u001b[48;5;150m";
+var gradientGreen1 = "\u001b[48;5;113m";
+var gradientGreen2 = "\u001b[48;5;70m";
 var gradientGreen3 = "\u001b[48;5;2m";
 var gradientGreen4 = "\u001b[48;5;28m";
 
