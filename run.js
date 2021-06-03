@@ -114,10 +114,16 @@ const HOMESCREEN = "home_screen";
 const GAMESCREEN = "game_screen";
 const OPTIONSCREEN = "option_screen";
 const ABOUTSCREEN = "about_screen";
-const INVENTORYSCREEN = "inventory_screen";
+
+const INVENTORYSCREEN = "inventory_screen"; 
+var inventoryCursor = 0;
+var inventoryMaxRows = 14; //max lines displayed
+var inventoryScroll = 0; //index of first visible item from list
+var inventoryItems = ["apple", "rock", "wood", "water"];//, "sand", "car", "boat", "bike", "shovel", "pickaxe", "porc", "chicken", "bee", "bear", "fire"];
+
 const COMPATSCREEN = "compatibilty_screen"
 const MAPSCREEN = "map_screen"
-var currentScreen = HOMESCREEN;
+var currentScreen = HOMESCREEN;//INTROSCREEN;
 
 //DIALOGS
 var dialogIndex = 0;
@@ -202,15 +208,13 @@ function render(){
                 } else {
                     if (timeIntro<=0){
                         currentScreen = HOMESCREEN;
-                        // showIntro = false;
-                        // showOptions = true;
                     }
                     timeIntro -= 1000/fps;
                 }
                 break;
             case COMPATSCREEN : //display emojis test
-                lines.push(green+gradientBlack+"<          Compatibility        "+fullscreenMarge);
-                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔══════════"+green+"COMPATIBILITY"+white+"═══════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║Player                        ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║Items                         ║"+fullscreenMarge);
@@ -228,43 +232,56 @@ function render(){
                 break;
             case HOMESCREEN:
                 lines.push(gradientBlue2+"                                "+fullscreenMarge);
-                lines.push(white+gradientBlue2+"                                "+fullscreenMarge);
+                lines.push(white+gradientBlue2+"     ☁️                       🌤️  "+fullscreenMarge);
                 lines.push(brightWhite+gradientBlue1+"            UNIWORLD            "+fullscreenMarge);
-                lines.push(gradientBlue1+"                                "+fullscreenMarge);
+                lines.push(gradientBlue1+"                        ☁️       "+fullscreenMarge);
                 lines.push(gradientBlue0+"                                "+fullscreenMarge);
-                lines.push(gradientBlue0+" 🌲🌳🌲  🌲    🌲🌲🌲🌳  🌲🌲   "+fullscreenMarge);
+                lines.push(gradientBlue0+" 🌲🌳🌲  🌲    🌲🌲  🌳  🌲🌲   "+fullscreenMarge);
                 lines.push(gradientGreen4+" 🌲              🌲🌲      🌲🌲 "+fullscreenMarge);
                 lines.push(gradientGreen4+" 🌲🌲                           "+fullscreenMarge);
                 lines.push(gradientGreen3+"          🧒 "+red+"P"+black+"lay               "+fullscreenMarge);
                 lines.push(gradientGreen3+"                                "+fullscreenMarge);
                 lines.push(gradientGreen2+"          ⚙️  "+red+"O"+black+"ptions            "+fullscreenMarge);
-                lines.push(gradientGreen2+"                                "+fullscreenMarge);
+                lines.push(gradientGreen2+"   ⛺                           "+fullscreenMarge);
                 lines.push(gradientGreen1+"          📄 "+red+"A"+black+"bout              "+fullscreenMarge);
                 lines.push(gradientGreen1+"                                "+fullscreenMarge);
                 lines.push(gradientGreen0+"                                "+fullscreenMarge);
                 lines.push(gradientGreen0+"      "+green+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
                 break;
             case INVENTORYSCREEN:
-                lines.push(red+gradientBlack+"            Inventory           "+fullscreenMarge);
-                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║              🍎              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
+                lines.push(white+gradientBlack+"╔══════════"+green+"INVENTORY"+white+"═══════════╗"+fullscreenMarge);
+                for(var i=0; i<inventoryMaxRows; i++) {
+                    var line = "";
+                    if(i+inventoryScroll == inventoryCursor) {
+                        line += green;
+                    } else {
+                        line += white;
+                    }
+
+                    var itemName = "";
+                    if(inventoryItems.length >i+inventoryScroll) {
+                        itemName += inventoryItems[i+inventoryScroll]
+                    }
+                    line += itemName;
+
+                    //complete line to end screen
+                    var maxCharacters = 30;
+                    var charToAdd = maxCharacters - itemName.length;
+                    // logs += "charToAdd : "+charToAdd;
+                    for (var j=0; j<charToAdd; j++) {
+                        line += " ";
+                    }
+                    //end line with ui
+                    line += fullscreenMarge;
+
+                    lines.push(white+gradientBlack+"║"+line+white+gradientBlack+"║");
+                }
+
+                lines.push(white+gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
                 break;
             case OPTIONSCREEN:
-                lines.push(green+gradientBlack+" <           Options            "+fullscreenMarge);
-                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔════════════"+green+"OPTIONS"+white+"═══════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ INGAME                       ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ -Use arrow to move player    ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ -Press space to use something║"+fullscreenMarge);
@@ -281,8 +298,8 @@ function render(){
                 lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
                 break;
             case ABOUTSCREEN:
-                lines.push(red+gradientBlack+"<             ABOUT             "+fullscreenMarge);
-                lines.push(white+gradientBlack+"╔══════════════════════════════╗"+fullscreenMarge);
+                lines.push(white+gradientBlack+"╔═════════════"+green+"ABOUT"+white+"════════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ 🙋 Hello and welcome !       ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ I'm B3ird                    ║"+fullscreenMarge);
@@ -326,9 +343,9 @@ function render(){
                         //footer
                         var footerLines = 1;
                         if (fullscreen){
-                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════════════════════════════════════Enter╝";
+                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════════════════════════════════════"+green+"Enter"+white+"╝";
                         } else {
-                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════Enter╝";
+                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════"+green+"Enter"+white+"╝";
                         }
 
                         //body
@@ -486,7 +503,7 @@ function renderScreenPixel(x, y, showPlayer = true) { //all layers
     //deep map
     mapTile = getScreenTile(x,y);
 
-    //items map
+    //inventoryItems map
     // var mapItem = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
     // if (mapItem < 0) { mapItem *= -1;}
 
@@ -575,6 +592,8 @@ function renderMap(val, background){
     } 
     //grass
     else if (0.55 <= val && val < 0.65) {
+        //  ˇ ˞
+        pixel = green+" ˞";
         color = gradientGreen0;
     } 
     else if (0.65 <= val && val < 0.75) {
@@ -734,15 +753,39 @@ function inputListener(key) {
             break;
         //player
         case up:
-            if (playerCanMoveTo("up")){
-                playerY -= factor;
-                playerMoveApplied = false;
+            switch (currentScreen) {
+                case GAMESCREEN:
+                    if (playerCanMoveTo("up")){
+                        playerY -= factor;
+                        playerMoveApplied = false;
+                    }
+                    break;
+                case INVENTORYSCREEN:
+                    if (inventoryCursor > 0){
+                        inventoryCursor--;
+                    }
+                    if (inventoryCursor < inventoryScroll) {
+                        inventoryScroll--;
+                    }
+                    break;
             }
             break;
         case down:
-            if (playerCanMoveTo("down")){
-                playerY += factor;
-                playerMoveApplied = false;
+            switch (currentScreen) {
+                case GAMESCREEN:
+                    if (playerCanMoveTo("down")){
+                        playerY += factor;
+                        playerMoveApplied = false;
+                    }
+                    break;
+                case INVENTORYSCREEN:
+                    if (inventoryCursor < inventoryItems.length-1){
+                        inventoryCursor++;
+                    }
+                    if (inventoryCursor >= inventoryScroll+inventoryMaxRows) {
+                        inventoryScroll++;
+                    }
+                    break;
             }
             break;
         case left:
