@@ -55,6 +55,8 @@ var playerTalk = true;
 var playerAsk = false;
 var playerUse = false;
 
+var windDirection = 0;
+
 function getPlayerSprites() {
     if (currentScreen == MAPSCREEN) {
         playerSprites = [playerMap,playerMap2];
@@ -115,11 +117,30 @@ const GAMESCREEN = "game_screen";
 const OPTIONSCREEN = "option_screen";
 const ABOUTSCREEN = "about_screen";
 
+const DETAILSCREEN = "details_screen";
+var detailsItem = "unknown";
+
 const INVENTORYSCREEN = "inventory_screen"; 
 var inventoryCursor = 0;
 var inventoryMaxRows = 14; //max lines displayed
 var inventoryScroll = 0; //index of first visible item from list
-var inventoryItems = ["apple", "rock", "wood", "water"];//, "sand", "car", "boat", "bike", "shovel", "pickaxe", "porc", "chicken", "bee", "bear", "fire"];
+var inventoryItems = [
+        { "name": "leaf", "sprite":"🍂", "count": 0 },
+        { "name": "wood", "sprite":"🌲", "count": 0 }, 
+        { "name": "rock", "sprite":"🗿", "count": 0 }, 
+        { "name": "metal", "sprite":"🔩", "count": 0 }
+    ];
+//var inventoryItems = ["apple", "rock", "wood", "water"];//, "sand", "car", "boat", "bike", "shovel", "pickaxe", "porc", "chicken", "bee", "bear", "fire"];
+var inventorySelectedItem;
+
+const CRAFTSCREEN = "craft_screen"; 
+var craftCursor = 0;
+var craftMaxRows = 14; //max lines displayed
+var craftScroll = 0; //index of first visible item from list
+var craftItems = [
+        { "name": "tent", "sprite": "⛺", "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
+        { "name": "fishing rod", "sprite": "🎣", "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
+    ];
 
 const COMPATSCREEN = "compatibilty_screen"
 const MAPSCREEN = "map_screen"
@@ -253,6 +274,7 @@ function render(){
                 for(var i=0; i<inventoryMaxRows; i++) {
                     var line = "";
                     if(i+inventoryScroll == inventoryCursor) {
+                        inventorySelectedItem = inventoryItems[i+inventoryScroll];
                         line += green;
                     } else {
                         line += white;
@@ -260,7 +282,8 @@ function render(){
 
                     var itemName = "";
                     if(inventoryItems.length >i+inventoryScroll) {
-                        itemName += inventoryItems[i+inventoryScroll]
+
+                        itemName += " "+inventoryItems[i+inventoryScroll]["sprite"]+" "+inventoryItems[i+inventoryScroll]["name"]+" x"+inventoryItems[i+inventoryScroll]["count"]
                     }
                     line += itemName;
 
@@ -278,6 +301,56 @@ function render(){
                 }
 
                 lines.push(white+gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
+                break;
+            case CRAFTSCREEN:
+                lines.push(white+gradientBlack+"╔════════════"+green+"CRAFT"+white+"═════════════╗"+fullscreenMarge);
+                for(var i=0; i<craftMaxRows; i++) {
+                    var line = "";
+                    if(i+craftScroll == craftCursor) {
+                        line += green;
+                    } else {
+                        line += white;
+                    }
+
+                    var itemName = "";
+                    if(craftItems.length >i+craftScroll) {
+                        itemName += craftItems[i+craftScroll]["name"]
+                    }
+                    line += itemName;
+
+                    //complete line to end screen
+                    var maxCharacters = 30;
+                    var charToAdd = maxCharacters - itemName.length;
+                    // logs += "charToAdd : "+charToAdd;
+                    for (var j=0; j<charToAdd; j++) {
+                        line += " ";
+                    }
+                    //end line with ui
+                    line += fullscreenMarge;
+
+                    lines.push(white+gradientBlack+"║"+line+white+gradientBlack+"║");
+                }
+
+                lines.push(white+gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
+                break;
+            case DETAILSCREEN:
+                logs += "details of "+detailsItem["name"];
+                lines.push(white+gradientBlack+"╔═══════╦════"+green+"DETAILS"+white+"═══════════╗"+fullscreenMarge);
+                lines.push(gradientBlack+"║       ║                      ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║   "+detailsItem["sprite"]+"  ║     "+detailsItem["name"]+"                 ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║       ║                      ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╠═══════╝                      ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                lines.push(gradientBlack+"╚═Escape══════════EnterToCraft═╝"+fullscreenMarge+reset);
                 break;
             case OPTIONSCREEN:
                 lines.push(white+gradientBlack+"╔════════════"+green+"OPTIONS"+white+"═══════════╗"+fullscreenMarge);
@@ -317,6 +390,16 @@ function render(){
                 break;
             case GAMESCREEN:
             case MAPSCREEN:
+                var windChange = getRandomInt(20);
+                if (windChange==1){
+                    if (windDirection == 0){
+                        windDirection = 1;
+                    } else {
+                        windDirection = 0;
+                    }
+                }
+                
+
                 for(var y = 0; y < screenHeight; y++) { 
                     var line="";
                     for(var x = 0; x < screenWidth; x++) {
@@ -326,11 +409,18 @@ function render(){
                 }
 
                 //HUD
+                var windIndicator = "";
+                if (windDirection == 0){
+                    windIndicator = "🌬️ ⬅️ ";
+                } else {
+                    windIndicator = "🌬️ ➡️ ";
+                }
+
                 if (currentScreen != MAPSCREEN) {
                     if (fullscreen){
-                        lines[0] = gradientBlack+"❤️ ❤️ 💔                                                          ";
+                        lines[0] = gradientBlack+"❤️ ❤️ 💔                                                      "+windIndicator;
                     } else {
-                        lines[0] = gradientBlack+"❤️ 💔💔                          ";
+                        lines[0] = gradientBlack+"❤️ 💔💔                      "+windIndicator;
                     }
                 }
 
@@ -535,7 +625,7 @@ function renderFoliage(mapTile, mapFoliage){
         if (mapFoliage < 0.1){ //10%
             foliage = treeSprite;    
         }
-    } else if (0.75 <= mapTile && mapTile < 0.95) {
+    } else if (0.75 <= mapTile && mapTile < 0.85) {
         if (mapFoliage < 0.3){ //30%
             foliage = pineSprite;
         }
@@ -571,10 +661,20 @@ function renderMap(val, background){
     pixel = "  ";
 
     //animated water
-    var deepWater = backgroundBlue;
-    var waterSprites = [gradientBlue0,gradientBlue1];
-    var waterType = getRandomInt(waterSprites.length-1);
-    deepWater = waterSprites[waterType];
+    var waterBackgrounds = [gradientBlue0/*,gradientBlue1*/];
+    var waterBackgroundId = getRandomInt(waterBackgrounds.length-1);
+    var waterBackground = waterBackgrounds[waterBackgroundId];
+
+    var waterSprites = [" ˞", "  "];
+    var waterSpriteId = getRandomInt(waterSprites.length-1);
+    var waterSprite = waterSprites[waterSpriteId];
+
+    //animated grass
+    var grassSprites = [" ˎ", " ˏ"];
+    animatedGrass = grassSprites[windDirection];
+
+    var grassSprites2 = [" ◝", " ◜"];
+    animatedGrass2 = grassSprites2[windDirection];
 
     var snow = backgroundWhite;
     var glace = backgroundBrightWhite;
@@ -582,38 +682,45 @@ function renderMap(val, background){
     //Map specifications
     //water
     if (val < 0.35) {
-        color = deepWater;
+        pixel = blue+waterSprite;
+        color = waterBackground;
     } else if (0.35 <= val && val < 0.4) {
         color = backgroundBrightBlue;
     } 
     //sand
     else if (0.4 <= val && val < 0.55) {
+        pixel = yellow+"⋅ "
         color = gradientYellow0;
     } 
     //grass
     else if (0.55 <= val && val < 0.65) {
-        //  ˇ ˞
-        pixel = green+" ˞";
+        pixel = green+animatedGrass;
         color = gradientGreen0;
     } 
     else if (0.65 <= val && val < 0.75) {
+        pixel = green+animatedGrass2;
         color = gradientGreen2;
     } 
     else if (0.75 <= val && val < 0.85) {
+        pixel = green+"⋎ ";
         color = gradientGreen4;
     } 
     //dirt
     else if (0.85 <= val && val < 0.90) {
+        pixel = yellow+"∴ ";
         color = gradientBrown0;
     } 
     else if (0.90 <= val && val < 0.95) {
+        pixel = yellow+"⋱ ";
         color = gradientBrown1;
     } 
     //rock
-    else if (0.95 <= val && val < 1.0) {
-        color = gradientGrey0;
+    else if (0.95 <= val && val < 0.96) {
+        pixel = white+"▚▙";
+        color = gradientGrey1;
     } 
     else {
+        pixel = white+"▟▛";
         color = gradientWhite0;
     }
 
@@ -691,7 +798,7 @@ function playerCanMoveTo(direction) {
         var val = getMapTile(x,y);
         
         test = x+","+y+" -> "+val;
-        if (0.35 <= val && val <= 0.95){
+        if (0.35 <= val && val <= 0.96){
             canMove = true;
         } else {
             playerBlocked = true;
@@ -732,12 +839,23 @@ function inputListener(key) {
                         dialogIndex++;
                     }
                     break;
+                case CRAFTSCREEN :
+                    currentScreen = DETAILSCREEN;
+                    // detailsItem = inventorySelectedItem;
+                    detailsItem = craftItems[craftCursor];
+                    logs += "details of "+detailsItem;
             }
             break;
         case esc:
             switch(currentScreen){
                 case COMPATSCREEN:
                     currentScreen = OPTIONSCREEN;
+                    break;
+                case CRAFTSCREEN:
+                    currentScreen = GAMESCREEN;
+                    break;
+                case DETAILSCREEN:
+                    currentScreen = CRAFTSCREEN;
                     break;
                 default :
                     currentScreen = HOMESCREEN;
@@ -768,6 +886,14 @@ function inputListener(key) {
                         inventoryScroll--;
                     }
                     break;
+                case CRAFTSCREEN:
+                    if (craftCursor > 0){
+                        craftCursor--;
+                    }
+                    if (craftCursor < craftScroll) {
+                        craftScroll--;
+                    }
+                    break;
             }
             break;
         case down:
@@ -784,6 +910,14 @@ function inputListener(key) {
                     }
                     if (inventoryCursor >= inventoryScroll+inventoryMaxRows) {
                         inventoryScroll++;
+                    }
+                    break;
+                case CRAFTSCREEN:
+                    if (craftCursor < craftItems.length-1){
+                        craftCursor++;
+                    }
+                    if (craftCursor >= craftScroll+craftMaxRows) {
+                        craftScroll++;
                     }
                     break;
             }
@@ -834,6 +968,16 @@ function inputListener(key) {
                     currentScreen = INVENTORYSCREEN;
                     break;
                 case INVENTORYSCREEN :
+                    currentScreen = GAMESCREEN;
+                    break;
+            }
+            break;
+        case "c":
+            switch(currentScreen){
+                case GAMESCREEN :
+                    currentScreen = CRAFTSCREEN;
+                    break;
+                case CRAFTSCREEN :
                     currentScreen = GAMESCREEN;
                     break;
             }
