@@ -125,22 +125,26 @@ var inventoryCursor = 0;
 var inventoryMaxRows = 14; //max lines displayed
 var inventoryScroll = 0; //index of first visible item from list
 var inventoryItems = [
-        { "name": "leaf", "sprite":"🍂", "count": 0 },
-        { "name": "wood", "sprite":"🌲", "count": 0 }, 
-        { "name": "rock", "sprite":"🗿", "count": 0 }, 
-        { "name": "metal", "sprite":"🔩", "count": 0 }
+        { "name": "leaf", "sprite":"🍂", "count": 0, "craftable": false },
+        { "name": "wood", "sprite":"🌲", "count": 0, "craftable": false }, 
+        { "name": "rock", "sprite":"🗿", "count": 0, "craftable": false }, 
+        { "name": "metal", "sprite":"🔩", "count": 0, "craftable": false },
+        { "name": "boat", "sprite":"🚣", "count": 0, "craftable": false },
+        { "name": "tent", "sprite": "⛺", "count": 0, "craftable": true, "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
+        { "name": "fishing rod", "sprite": "🎣", "count": 0, "craftable": true, "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
+        
     ];
 //var inventoryItems = ["apple", "rock", "wood", "water"];//, "sand", "car", "boat", "bike", "shovel", "pickaxe", "porc", "chicken", "bee", "bear", "fire"];
 var inventorySelectedItem;
 
 const CRAFTSCREEN = "craft_screen"; 
-var craftCursor = 0;
-var craftMaxRows = 14; //max lines displayed
-var craftScroll = 0; //index of first visible item from list
-var craftItems = [
-        { "name": "tent", "sprite": "⛺", "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
-        { "name": "fishing rod", "sprite": "🎣", "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
-    ];
+// var craftCursor = 0;
+// var craftMaxRows = 14; //max lines displayed
+// var craftScroll = 0; //index of first visible item from list
+// var craftItems = [
+//         { "name": "tent", "sprite": "⛺", "craftable": true, "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
+//         { "name": "fishing rod", "sprite": "🎣", "craftable": true, "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
+//     ];
 
 const COMPATSCREEN = "compatibilty_screen"
 const MAPSCREEN = "map_screen"
@@ -258,12 +262,12 @@ function render(){
                 lines.push(gradientBlue1+"                        ☁️       "+fullscreenMarge);
                 lines.push(gradientBlue0+"                                "+fullscreenMarge);
                 lines.push(gradientBlue0+" 🌲🌳🌲  🌲    🌲🌲  🌳  🌲🌲   "+fullscreenMarge);
-                lines.push(gradientGreen4+" 🌲              🌲🌲      🌲🌲 "+fullscreenMarge);
+                lines.push(gradientGreen4+" 🌲              🌲🌲  🏕️   🌲🌲 "+fullscreenMarge);
                 lines.push(gradientGreen4+" 🌲🌲                           "+fullscreenMarge);
                 lines.push(gradientGreen3+"          🧒 "+red+"P"+black+"lay               "+fullscreenMarge);
                 lines.push(gradientGreen3+"                                "+fullscreenMarge);
                 lines.push(gradientGreen2+"          ⚙️  "+red+"O"+black+"ptions            "+fullscreenMarge);
-                lines.push(gradientGreen2+"   ⛺                           "+fullscreenMarge);
+                lines.push(gradientGreen2+"                                "+fullscreenMarge);
                 lines.push(gradientGreen1+"          📄 "+red+"A"+black+"bout              "+fullscreenMarge);
                 lines.push(gradientGreen1+"                                "+fullscreenMarge);
                 lines.push(gradientGreen0+"                                "+fullscreenMarge);
@@ -288,12 +292,13 @@ function render(){
                     line += itemName;
 
                     //complete line to end screen
-                    var maxCharacters = 30;
-                    var charToAdd = maxCharacters - itemName.length;
-                    // logs += "charToAdd : "+charToAdd;
-                    for (var j=0; j<charToAdd; j++) {
-                        line += " ";
-                    }
+                    // var maxCharacters = 30;
+                    // var charToAdd = maxCharacters - itemName.length;
+                    // // logs += "charToAdd : "+charToAdd;
+                    // for (var j=0; j<charToAdd; j++) {
+                    //     line += " ";
+                    // }
+                    line = formatLine(line, 35);
                     //end line with ui
                     line += fullscreenMarge;
 
@@ -337,51 +342,64 @@ function render(){
                 logs += "details of "+detailsItem["name"];
                 lines.push(white+gradientBlack+"╔═══════╦════"+green+"DETAILS"+white+"═══════════╗"+fullscreenMarge);
                 lines.push(gradientBlack+"║       ║                      ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║   "+detailsItem["sprite"]+"  ║     "+detailsItem["name"]+"                 ║"+fullscreenMarge);
+
+                var title = formatLine("  "+detailsItem["sprite"]+"   ║ Name : "+detailsItem["name"], 30);
+                lines.push(gradientBlack+"║"+title+"║"+fullscreenMarge);
                 lines.push(gradientBlack+"║       ║                      ║"+fullscreenMarge);
                 lines.push(gradientBlack+"╠═══════╝                      ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚═Escape══════════EnterToCraft═╝"+fullscreenMarge+reset);
+
+                if (detailsItem["required"] != undefined) {
+                    lines.push(gradientBlack+"║ Required :                   ║"+fullscreenMarge);
+                    for (var i=0; i<detailsItem["required"].length; i++) {
+                        const itemDetails = inventoryItems.find( item => item.name === detailsItem["required"][i]["name"]);
+                        var requirement = formatLine(" ⮡ "+itemDetails["sprite"]+" "+detailsItem["required"][i]["name"]+" x"+detailsItem["required"][0]["count"], 29);
+                        lines.push(gradientBlack+"║"+formatLine(requirement, 30)+"║"+fullscreenMarge);
+                    }
+                    for (var i=0; i<(9-detailsItem["required"].length); i++){
+                        lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                    }
+                } else {
+                    for (var i=0; i<10; i++){
+                        lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                    }
+                }
+                
+                if (detailsItem["required"] != undefined) {
+                    lines.push(gradientBlack+"╚═Escape══════════EnterToCraft═╝"+fullscreenMarge+reset);
+                } else {
+                    lines.push(gradientBlack+"╚═Escape═══════════════════════╝"+fullscreenMarge+reset);
+                }
                 break;
             case OPTIONSCREEN:
                 lines.push(white+gradientBlack+"╔════════════"+green+"OPTIONS"+white+"═══════════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ INGAME                       ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Use arrow to move player    ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press space to use something║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Use arrows to move player   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press enter to validate     ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press escape to back        ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press space to do something ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ -Press 'M' to show the map   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press escape to back home   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press '5' to center camera  ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Use numpad to move camera   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press 'I' to show inventory ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ DEBUG                        ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Use numpad to move camera   ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press '5' to center camera  ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ -Press 'I' to check compat   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
                 break;
             case ABOUTSCREEN:
                 lines.push(white+gradientBlack+"╔═════════════"+green+"ABOUT"+white+"════════════╗"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ 🙋 Hello and welcome !       ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ 🙋 Hello and welcome on this ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ small open world. I'm B3ird  ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ the developer of this game.  ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ I'm B3ird                    ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ the dev of this small game.  ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ It was a challenge for me to ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ make a colorfull 2D game in  ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ a terminal command.          ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ make a colorfull 2D playable ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ world in a terminal.         ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ I hope you liked it !        ║"+fullscreenMarge);
+                lines.push(gradientBlack+"║ I hope you will like it !    ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║ Stay tuned for next update ! ║"+fullscreenMarge);
                 lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
@@ -409,6 +427,11 @@ function render(){
                 }
 
                 //HUD
+                var clocks = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"]
+                var hour = Math.floor((frame/100) % 12);
+                logs+=hour;
+                var clock = clocks[hour];
+
                 var windIndicator = "";
                 if (windDirection == 0){
                     windIndicator = "🌬️ ⬅️ ";
@@ -418,9 +441,9 @@ function render(){
 
                 if (currentScreen != MAPSCREEN) {
                     if (fullscreen){
-                        lines[0] = gradientBlack+"❤️ ❤️ 💔                                                      "+windIndicator;
+                        lines[0] = gradientBlack+"❤️ ❤️ 💔                         "+clock+"                           "+windIndicator;
                     } else {
-                        lines[0] = gradientBlack+"❤️ 💔💔                      "+windIndicator;
+                        lines[0] = gradientBlack+"❤️ 💔💔         "+clock+"           "+windIndicator;
                     }
                 }
 
@@ -839,11 +862,12 @@ function inputListener(key) {
                         dialogIndex++;
                     }
                     break;
-                case CRAFTSCREEN :
+                // case CRAFTSCREEN :
+                //     currentScreen = DETAILSCREEN;
+                //     detailsItem = craftItems[craftCursor];
+                case INVENTORYSCREEN :
                     currentScreen = DETAILSCREEN;
-                    // detailsItem = inventorySelectedItem;
-                    detailsItem = craftItems[craftCursor];
-                    logs += "details of "+detailsItem;
+                    detailsItem = inventoryItems[inventoryCursor];
             }
             break;
         case esc:
@@ -851,11 +875,11 @@ function inputListener(key) {
                 case COMPATSCREEN:
                     currentScreen = OPTIONSCREEN;
                     break;
-                case CRAFTSCREEN:
+                case INVENTORYSCREEN:
                     currentScreen = GAMESCREEN;
                     break;
                 case DETAILSCREEN:
-                    currentScreen = CRAFTSCREEN;
+                    currentScreen = INVENTORYSCREEN;
                     break;
                 default :
                     currentScreen = HOMESCREEN;
@@ -973,15 +997,15 @@ function inputListener(key) {
             }
             break;
         case "c":
-            switch(currentScreen){
-                case GAMESCREEN :
-                    currentScreen = CRAFTSCREEN;
-                    break;
-                case CRAFTSCREEN :
-                    currentScreen = GAMESCREEN;
-                    break;
-            }
-            break;
+            // switch(currentScreen){
+            //     case GAMESCREEN :
+            //         currentScreen = CRAFTSCREEN;
+            //         break;
+            //     case CRAFTSCREEN :
+            //         currentScreen = GAMESCREEN;
+            //         break;
+            // }
+            // break;
         case "f":
             fullscreen = !fullscreen;
             if (fullscreen) {
@@ -1036,4 +1060,33 @@ function getRandomInt(max) {
 function setCharAt(str,index,chr) {
     if(index > str.length-1) return str;
     return str.substring(0,index) + chr + str.substring(index+1);
+}
+
+//complete line to end screen
+function formatLine(startLine, maxCharacters) {
+    var endLine = "";
+    // var maxCharacters = 35;
+    var charToAdd = maxCharacters - startLine.length;//countCodePoints(startLine);
+    for (var j=0; j<charToAdd; j++) {
+        endLine += " ";
+    }
+    return startLine+endLine;
+}
+
+function countCodePoints(str) {
+  var point;
+  var index;
+  var width = 0;
+  var len = 0;
+  for (index = 0; index < str.length;) {
+      point = str.codePointAt(index);
+      width = 0;
+      while (point) {
+          width += 1;
+          point = point >> 8;
+      }
+      index += Math.round(width/2);
+      len += 1;
+  }
+  return len;
 }
