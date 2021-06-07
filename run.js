@@ -3,8 +3,8 @@
 var SimplexNoise = require('simplex-noise');
 
 //MAP
-//var seed = Math.random;
-var mapSeed = 666;
+var mapSeed = Math.random;
+// var mapSeed = 666;
 var mapSimplex = new SimplexNoise(mapSeed);
 
 var itemSeed = 54;
@@ -27,513 +27,6 @@ var scale = maxScale;
 
 var cameraX = 0;
 var cameraY = 0;
-
-//Sprites
-var treeSprite = "🌳";
-var pineSprite = "🌲";
-var heartSprite = " ❤";
-var appleSprite = "🍎"
-var cactus = "🌵";
-
-//player sprites
-var playerSprites;
-var playerFace = "🧑";
-var playerBody1 = "\uD83D\uDE4E";
-var playerBody2 = "\uD83D\uDE4D";
-var playerMap = "🧍";
-var playerMap2 = "🚶";
-var playerRefusing = "🙅";
-var playerGreeting = "🙋";
-var playerUsing = "🙇";
-var playerAsking = "💁";
-
-var axe = "\uD83E\uDE93";
-
-var emoji = true;
-
-var playerTalk = true;
-var playerAsk = false;
-var playerUse = false;
-
-var windDirection = 0;
-
-function getPlayerSprites() {
-    if (currentScreen == MAPSCREEN) {
-        playerSprites = [playerMap,playerMap2];
-    } else if (playerBlocked) {
-        playerSprites = [playerRefusing];
-    } else if (playerUse) {
-        playerSprites = [playerUsing];
-    } else if (playerAsk) {
-        playerSprites = [playerAsking];
-    } else if (playerTalk) {
-        playerSprites = [playerGreeting];
-    } else {
-        playerSprites = [playerBody1,playerBody2];
-    }
-}
-
-var requestCameraCenter = false;
-function centerCamera() {
-    cameraX = projectionPlayerX-(screenWidth/2);
-    cameraY = projectionPlayerY-(screenHeight/2);
-    requestCameraCenter = false;
-}
-
-function moveCamera() {
-    var offset = 6; // if half screen, fully static
-    if (projectionPlayerX-cameraX < offset){
-        cameraX--;
-    } else if (projectionPlayerX-cameraX > screenWidth - offset){
-        cameraX++;
-    }
-    if (projectionPlayerY-cameraY < offset){
-        cameraY--;
-    } else if (projectionPlayerY-cameraY > screenHeight - offset){
-        cameraY++;
-    }
-}
-
-//PLAYER
-var playerX = -0.25;
-var playerY = -0.25;
-var projectionPlayerX = 0;
-var projectionPlayerY = 0;
-var playerMoveAllowed = false;
-var playerMoveApplied = false;
-var use = false;
-
-//RENDERING
-var frame = 0;
-var rendered = true;
-var introScroll = 0;
-var timeIntro = 2000; //ms
-var showDialog = false;
-
-//SCREENS
-const INTROSCREEN = "introduction_screen";
-const HOMESCREEN = "home_screen";
-const GAMESCREEN = "game_screen";
-const OPTIONSCREEN = "option_screen";
-const ABOUTSCREEN = "about_screen";
-
-const DETAILSCREEN = "details_screen";
-var detailsItem = "unknown";
-
-const INVENTORYSCREEN = "inventory_screen"; 
-var inventoryCursor = 0;
-var inventoryMaxRows = 14; //max lines displayed
-var inventoryScroll = 0; //index of first visible item from list
-var inventoryItems = [
-        { "name": "leaf", "sprite":"🍂", "count": 0, "craftable": false },
-        { "name": "wood", "sprite":"🌲", "count": 0, "craftable": false }, 
-        { "name": "rock", "sprite":"🗿", "count": 0, "craftable": false }, 
-        { "name": "metal", "sprite":"🔩", "count": 0, "craftable": false },
-        { "name": "boat", "sprite":"🚣", "count": 0, "craftable": false },
-        { "name": "tent", "sprite": "⛺", "count": 0, "craftable": true, "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
-        { "name": "fishing rod", "sprite": "🎣", "count": 0, "craftable": true, "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
-        
-    ];
-//var inventoryItems = ["apple", "rock", "wood", "water"];//, "sand", "car", "boat", "bike", "shovel", "pickaxe", "porc", "chicken", "bee", "bear", "fire"];
-var inventorySelectedItem;
-
-const CRAFTSCREEN = "craft_screen"; 
-// var craftCursor = 0;
-// var craftMaxRows = 14; //max lines displayed
-// var craftScroll = 0; //index of first visible item from list
-// var craftItems = [
-//         { "name": "tent", "sprite": "⛺", "craftable": true, "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
-//         { "name": "fishing rod", "sprite": "🎣", "craftable": true, "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
-//     ];
-
-const COMPATSCREEN = "compatibilty_screen"
-const MAPSCREEN = "map_screen"
-var currentScreen = HOMESCREEN;//INTROSCREEN;
-
-//DIALOGS
-var dialogIndex = 0;
-var dialog = [];
-var welcome = [];
-welcome[0] = playerFace + " Hello ! My name is Sam,  ";
-welcome[1] = "let's discover this world ! ";
-dialog.push(welcome);
-showDialog = true;
-
-var mapTile;
-function getScreenTile(x, y) { //get tile info from screen x y coord
-    var mapTile = mapSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
-    mapTile += 0.5 * mapSimplex.noise2D(2*(x+cameraX)/scale, 2*(y+cameraY)/scale);
-    mapTile += 0.25 * mapSimplex.noise2D(4*(x+cameraX)/scale, 2*(y+cameraY)/scale);
-    if (mapTile < 0) { mapTile *= -1;}
-    mapTile = Math.pow(mapTile, 0.4);
-    return mapTile;
-}
-
-function getMapTile(x, y) { //get tile info from map x y coord
-    var mapTile = mapSimplex.noise2D(x/scale, y/scale);
-    mapTile += 0.5 * mapSimplex.noise2D(2*x/scale, 2*y/scale);
-    mapTile += 0.25 * mapSimplex.noise2D(4*x/scale, 2*y/scale);
-    if (mapTile < 0) { mapTile *= -1;}
-    mapTile = Math.pow(mapTile, 0.4);
-    return mapTile;
-}
-
-function getMapFoliage(x, y) {
-    var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
-    if (mapFoliage < 0) { mapFoliage *= -1;}
-    return mapFoliage;
-}
-
-var logs = "";
-var test = "";
-function render(){
-    if (rendered) {
-        rendered = false;
-
-        getPlayerSprites();
-
-        projectionPlayerX = Math.floor(playerX * scale);
-        projectionPlayerY = Math.floor(playerY * scale);
-
-        moveCamera();
-
-        if (requestCameraCenter){
-            centerCamera();
-        }
-
-        logs = "";
-        logs += "real player coord (" + playerX+","+playerY+")\n";
-        logs += "map projection coord (" + projectionPlayerX+","+projectionPlayerY+")\n";
-        logs += "scale "+scale+"\n";
-        logs += "frame  "+frame+"\n";
-
-        var ui = "";
-        if (!fullscreen){
-            ui += gradientGrey1+"                                        \n";
-            ui += gradientGrey0+"                                        \n";
-            ui += gradientGrey0+"  "+gradientGrey103+magenta+"════════════════════"+white+"UNICODE MATRIX"+magenta+"══"+gradientGrey0+"  \n";
-        } else {
-            ui += gradientGrey0+"                                                                        \n";
-            ui += gradientGrey0+"  "+gradientGrey103+magenta+"════════════════════════════════════════════════════"+white+"UNICODE MATRIX"+magenta+"══"+gradientGrey0+"  \n";
-        }
-
-        var lines = [];
-
-        switch(currentScreen) {
-            case INTROSCREEN :
-                for (var i=0; i<screenHeight;i++){
-                    if (i==Math.floor(introScroll)){
-                        lines.push(black+gradientWhite0+"             B3IRD ®            "+fullscreenMarge);        
-                    } else {
-                        lines.push(gradientWhite0+"                                "+fullscreenMarge);        
-                    }
-                }
-                if (introScroll<screenHeight/2) {
-                    introScroll+=0.4;
-                } else {
-                    if (timeIntro<=0){
-                        currentScreen = HOMESCREEN;
-                    }
-                    timeIntro -= 1000/fps;
-                }
-                break;
-            case COMPATSCREEN : //display emojis test
-                lines.push(white+gradientBlack+"╔══════════"+green+"COMPATIBILITY"+white+"═══════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║Player                        ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║Items                         ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║🪓 ⛏ 🔨                       ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║Interface                     ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║❤️ 💔                          ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║Animals                       ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║🐈 🐖 🐟                      ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║Environment                   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║🌳 🌲 🌴 🌵 🎄                ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
-                break;
-            case HOMESCREEN:
-                lines.push(gradientBlue2+"                                "+fullscreenMarge);
-                lines.push(white+gradientBlue2+"     ☁️                       🌤️  "+fullscreenMarge);
-                lines.push(brightWhite+gradientBlue1+"            UNIWORLD            "+fullscreenMarge);
-                lines.push(gradientBlue1+"                        ☁️       "+fullscreenMarge);
-                lines.push(gradientBlue0+"                                "+fullscreenMarge);
-                lines.push(gradientBlue0+" 🌲🌳🌲  🌲    🌲🌲  🌳  🌲🌲   "+fullscreenMarge);
-                lines.push(gradientGreen4+" 🌲              🌲🌲  🏕️   🌲🌲 "+fullscreenMarge);
-                lines.push(gradientGreen4+" 🌲🌲                           "+fullscreenMarge);
-                lines.push(gradientGreen3+"          🧒 "+red+"P"+black+"lay               "+fullscreenMarge);
-                lines.push(gradientGreen3+"                                "+fullscreenMarge);
-                lines.push(gradientGreen2+"          ⚙️  "+red+"O"+black+"ptions            "+fullscreenMarge);
-                lines.push(gradientGreen2+"                                "+fullscreenMarge);
-                lines.push(gradientGreen1+"          📄 "+red+"A"+black+"bout              "+fullscreenMarge);
-                lines.push(gradientGreen1+"                                "+fullscreenMarge);
-                lines.push(gradientGreen0+"                                "+fullscreenMarge);
-                lines.push(gradientGreen0+"      "+green+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
-                break;
-            case INVENTORYSCREEN:
-                lines.push(white+gradientBlack+"╔══════════"+green+"INVENTORY"+white+"═══════════╗"+fullscreenMarge);
-                for(var i=0; i<inventoryMaxRows; i++) {
-                    var line = "";
-                    if(i+inventoryScroll == inventoryCursor) {
-                        inventorySelectedItem = inventoryItems[i+inventoryScroll];
-                        line += green;
-                    } else {
-                        line += white;
-                    }
-
-                    var itemName = "";
-                    if(inventoryItems.length >i+inventoryScroll) {
-
-                        itemName += " "+inventoryItems[i+inventoryScroll]["sprite"]+" "+inventoryItems[i+inventoryScroll]["name"]+" x"+inventoryItems[i+inventoryScroll]["count"]
-                    }
-                    line += itemName;
-
-                    //complete line to end screen
-                    // var maxCharacters = 30;
-                    // var charToAdd = maxCharacters - itemName.length;
-                    // // logs += "charToAdd : "+charToAdd;
-                    // for (var j=0; j<charToAdd; j++) {
-                    //     line += " ";
-                    // }
-                    line = formatLine(line, 35);
-                    //end line with ui
-                    line += fullscreenMarge;
-
-                    lines.push(white+gradientBlack+"║"+line+white+gradientBlack+"║");
-                }
-
-                lines.push(white+gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
-                break;
-            case CRAFTSCREEN:
-                lines.push(white+gradientBlack+"╔════════════"+green+"CRAFT"+white+"═════════════╗"+fullscreenMarge);
-                for(var i=0; i<craftMaxRows; i++) {
-                    var line = "";
-                    if(i+craftScroll == craftCursor) {
-                        line += green;
-                    } else {
-                        line += white;
-                    }
-
-                    var itemName = "";
-                    if(craftItems.length >i+craftScroll) {
-                        itemName += craftItems[i+craftScroll]["name"]
-                    }
-                    line += itemName;
-
-                    //complete line to end screen
-                    var maxCharacters = 30;
-                    var charToAdd = maxCharacters - itemName.length;
-                    // logs += "charToAdd : "+charToAdd;
-                    for (var j=0; j<charToAdd; j++) {
-                        line += " ";
-                    }
-                    //end line with ui
-                    line += fullscreenMarge;
-
-                    lines.push(white+gradientBlack+"║"+line+white+gradientBlack+"║");
-                }
-
-                lines.push(white+gradientBlack+"╚══════════════════════════════╝"+fullscreenMarge+reset);
-                break;
-            case DETAILSCREEN:
-                logs += "details of "+detailsItem["name"];
-                lines.push(white+gradientBlack+"╔═══════╦════"+green+"DETAILS"+white+"═══════════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║       ║                      ║"+fullscreenMarge);
-
-                var title = formatLine("  "+detailsItem["sprite"]+"   ║ Name : "+detailsItem["name"], 30);
-                lines.push(gradientBlack+"║"+title+"║"+fullscreenMarge);
-                lines.push(gradientBlack+"║       ║                      ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╠═══════╝                      ║"+fullscreenMarge);
-
-                if (detailsItem["required"] != undefined) {
-                    lines.push(gradientBlack+"║ Required :                   ║"+fullscreenMarge);
-                    for (var i=0; i<detailsItem["required"].length; i++) {
-                        const itemDetails = inventoryItems.find( item => item.name === detailsItem["required"][i]["name"]);
-                        var requirement = formatLine(" ⮡ "+itemDetails["sprite"]+" "+detailsItem["required"][i]["name"]+" x"+detailsItem["required"][0]["count"], 29);
-                        lines.push(gradientBlack+"║"+formatLine(requirement, 30)+"║"+fullscreenMarge);
-                    }
-                    for (var i=0; i<(9-detailsItem["required"].length); i++){
-                        lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                    }
-                } else {
-                    for (var i=0; i<10; i++){
-                        lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                    }
-                }
-                
-                if (detailsItem["required"] != undefined) {
-                    lines.push(gradientBlack+"╚═Escape══════════EnterToCraft═╝"+fullscreenMarge+reset);
-                } else {
-                    lines.push(gradientBlack+"╚═Escape═══════════════════════╝"+fullscreenMarge+reset);
-                }
-                break;
-            case OPTIONSCREEN:
-                lines.push(white+gradientBlack+"╔════════════"+green+"OPTIONS"+white+"═══════════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║ INGAME                       ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Use arrows to move player   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press enter to validate     ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press escape to back        ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press space to do something ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press 'M' to show the map   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press 'I' to show inventory ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ DEBUG                        ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Use numpad to move camera   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press '5' to center camera  ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ -Press 'I' to check compat   ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
-                break;
-            case ABOUTSCREEN:
-                lines.push(white+gradientBlack+"╔═════════════"+green+"ABOUT"+white+"════════════╗"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ 🙋 Hello and welcome on this ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ small open world. I'm B3ird  ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ the developer of this game.  ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ It was a challenge for me to ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ make a colorfull 2D playable ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ world in a terminal.         ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ I hope you will like it !    ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║ Stay tuned for next update ! ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
-                lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
-                break;
-            case GAMESCREEN:
-            case MAPSCREEN:
-                var windChange = getRandomInt(20);
-                if (windChange==1){
-                    if (windDirection == 0){
-                        windDirection = 1;
-                    } else {
-                        windDirection = 0;
-                    }
-                }
-                
-
-                for(var y = 0; y < screenHeight; y++) { 
-                    var line="";
-                    for(var x = 0; x < screenWidth; x++) {
-                        line += renderScreenPixel(x, y);
-                    }
-                    lines.push(line);
-                }
-
-                //HUD
-                var clocks = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"]
-                var hour = Math.floor((frame/100) % 12);
-                logs+=hour;
-                var clock = clocks[hour];
-
-                var windIndicator = "";
-                if (windDirection == 0){
-                    windIndicator = "🌬️ ⬅️ ";
-                } else {
-                    windIndicator = "🌬️ ➡️ ";
-                }
-
-                if (currentScreen != MAPSCREEN) {
-                    if (fullscreen){
-                        lines[0] = gradientBlack+"❤️ ❤️ 💔                         "+clock+"                           "+windIndicator;
-                    } else {
-                        lines[0] = gradientBlack+"❤️ 💔💔         "+clock+"           "+windIndicator;
-                    }
-                }
-
-                frame++;
-    // 
-                if (currentScreen != MAPSCREEN && showDialog){
-                    if (dialogIndex<=dialog.length-1) {
-                        playerMoveAllowed = false;
-                        var message = dialog[dialogIndex];
-                        //footer
-                        var footerLines = 1;
-                        if (fullscreen){
-                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════════════════════════════════════"+green+"Enter"+white+"╝";
-                        } else {
-                            lines[lines.length-1] = gradientBlack+"╚═════════════════════════"+green+"Enter"+white+"╝";
-                        }
-
-                        //body
-                        for (var d=0; d<message.length;d++){
-                            lines[lines.length-1-d-footerLines] = gradientBlack+"║ "+message[message.length-1-d]+fullscreenMarge+" ║";
-                        }
-
-                        //header
-                        if (fullscreen){
-                            lines[lines.length-1-message.length-1] = gradientBlack+"╔══════════════════════════════════════════════════════════════╗";    
-                        } else {
-                            lines[lines.length-1-message.length-1] = gradientBlack+"╔══════════════════════════════╗";    
-                        }
-                        
-                    } else {
-                        showDialog = false;
-                        playerMoveAllowed = true;
-                        playerTalk = false;
-                        playerBlocked = false;
-                        playerAsk = false;
-                        playerUse = false;
-                        use = false;
-                    }
-                }
-                break;
-        }
-
-        playerMoveApplied = true;
-
-        //display screen
-        for (var l=0; l<lines.length;l++){
-            ui += gradientGrey0+"  "+gradientGrey103+"  "+lines[l]+gradientGrey103+"  "+gradientGrey0+"  \n";   
-        }
-
-        if (!fullscreen){
-            ui += gradientGrey0+"  "+gradientGrey103+"                                    "+gradientGrey0+"  \n";
-            ui += gradientGrey0+"  "+blue+"B3IRD BOY™                            \n";
-            ui += gradientGrey0+"                                        \n";
-            ui += gradientGrey0+"      "+white+gradientBlack+"    "+gradientGrey0+"                      "+gradientMagenta+"    "+gradientGrey0+"    \n";
-            ui += gradientGrey0+"    "+gradientBlack+"        "+gradientGrey0+"                    "+gradientMagenta+"    "+gradientGrey0+"    \n";
-            ui += gradientGrey0+"    "+gradientBlack+"        "+gradientGrey0+"              "+gradientMagenta+"    "+gradientGrey0+blue+"    A     \n";
-            ui += gradientGrey0+"      "+white+gradientBlack+"    "+gradientGrey0+"                "+gradientMagenta+"    "+gradientGrey0+"          \n";
-            ui += gradientGrey0+blue+"                            B           \n";
-            ui += gradientGrey0+"              "+gradientGrey103+"    "+gradientGrey0+"  "+gradientGrey103+"    "+gradientGrey0+"              "+gradientGrey1+"  \n";
-            ui += gradientGrey0+blue+"             START SELECT           "+gradientGrey1+"  "+backgroundBlack+"\n";
-            ui += gradientGrey0+blue+"                                  "+gradientGrey1+"  "+backgroundBlack+"\n";
-            ui += gradientGrey1+"                                "+gradientGrey1+"  "+backgroundBlack+"\n";
-        } else {
-            ui += gradientGrey0+"  "+gradientGrey103+"                                                                    "+gradientGrey0+"  \n";
-            ui += gradientGrey0+"  "+blue+"B3IRD BOY™                                                            \n";
-        }
-        ui += reset;
-
-        console.clear();
-        // console.log(logs+screen+hud);
-
-        console.log(logs);
-
-        console.log(ui);
-
-        setTimeout(function(){
-            rendered = true;
-        }, 1000/fps);
-    }
-}
-
-var renderClock;
-var clock = 0;
-var fps = 10;
-function start(){
-    clearInterval(renderClock);
-    renderClock = setInterval(render,clock);
-}
-
-start();
 
 //16 colors
 var black = "\u001b[30m";
@@ -612,9 +105,501 @@ var gradientBlack = "\u001b[48;5;232m";
 //reset color
 var reset = "\u001b[0m";
 
+//Sprites
+var treeSprite = "🌳";
+var pineSprite = "🌲";
+var appleSprite = "🍎"
+var cactusSprite = "🌵";
+
+//player sprites
+var playerSprites;
+var playerFace = "🧑";
+var playerBody1 = "\uD83D\uDE4E";
+var playerBody2 = "\uD83D\uDE4D";
+var playerMap = "🧍";
+var playerMap2 = "🚶";
+var playerRefusing = "🙅";
+var playerGreeting = "🙋";
+var playerUsing = "🙇";
+var playerAsking = "💁";
+
+var axe = "\uD83E\uDE93";
+
+var emoji = true;
+
+var playerTalk = true;
+var playerAsk = false;
+var playerUse = false;
+
+var windDirection = 0;
+
+function getPlayerSprites() {
+    if (currentScreen == MAPSCREEN) {
+        playerSprites = [playerMap,playerMap2];
+    } else if (playerBlocked) {
+        playerSprites = [playerRefusing];
+    } else if (playerUse) {
+        playerSprites = [playerUsing];
+    } else if (playerAsk) {
+        playerSprites = [playerAsking];
+    } else if (playerTalk) {
+        playerSprites = [playerGreeting];
+    } else {
+        playerSprites = [playerBody1,playerBody2];
+    }
+}
+
+var requestCameraCenter = false;
+function centerCamera() {
+    cameraX = projectionPlayerX-(screenWidth/2);
+    cameraY = projectionPlayerY-(screenHeight/2);
+    requestCameraCenter = false;
+}
+
+function moveCamera() {
+    var offset = 6; // if half screen, fully static
+    if (projectionPlayerX-cameraX < offset){
+        cameraX--;
+    } else if (projectionPlayerX-cameraX > screenWidth - offset){
+        cameraX++;
+    }
+    if (projectionPlayerY-cameraY < offset){
+        cameraY--;
+    } else if (projectionPlayerY-cameraY > screenHeight - offset){
+        cameraY++;
+    }
+}
+
+//PLAYER
+var playerX = -0.25;
+var playerY = -0.25;
+var projectionPlayerX = 0;
+var projectionPlayerY = 0;
+var playerMoveAllowed = false;
+var playerMoveApplied = false;
+var use = false;
+
+//RENDERING
+var frame = 0;
+var rendered = true;
+var introScroll = 0;
+var timeIntro = 2000; //ms
+var showDialog = false;
+
+//SCREENS
+const INTROSCREEN = "introduction_screen";
+
+const HOMESCREEN = "home_screen";
+var homeCursor = 0;
+
+const GAMESCREEN = "game_screen";
+const OPTIONSCREEN = "option_screen";
+const ABOUTSCREEN = "about_screen";
+
+const DETAILSCREEN = "details_screen";
+var detailsItem = "unknown";
+
+const INVENTORYSCREEN = "inventory_screen"; 
+var inventoryCursor = 0;
+var inventoryMaxRows = 14; //max lines displayed
+var inventoryScroll = 0; //index of first visible item from list
+var inventoryItems = [
+        { "name": "leaf", "sprite":"🍂", "count": 0, "craftable": false },
+        { "name": "wood", "sprite":"🌲", "count": 0, "craftable": false }, 
+        { "name": "rock", "sprite":"🗿", "count": 0, "craftable": false }, 
+        { "name": "metal", "sprite":"🔩", "count": 0, "craftable": false },
+        { "name": "boat", "sprite":"🚣", "count": 0, "craftable": false },
+        { "name": "tent", "sprite": "⛺", "count": 0, "craftable": true, "required": [{"name":"wood","count":3},{"name":"leaf","count":10}] },
+        { "name": "fishing rod", "sprite": "🎣", "count": 0, "craftable": true, "required": [{"name":"wood","count":2},{"name":"metal","count":1}] }
+        
+    ];
+//var inventoryItems = ["apple", "rock", "wood", "water"];//, "sand", "car", "boat", "bike", "shovel", "pickaxe", "porc", "chicken", "bee", "bear", "fire"];
+var inventorySelectedItem;
+
+const COMPATSCREEN = "compatibilty_screen"
+const MAPSCREEN = "map_screen"
+var currentScreen = HOMESCREEN;//INTROSCREEN;
+
+//DIALOGS
+var dialogIndex = 0;
+var dialog = [];
+var welcome = [];
+welcome[0] = playerFace + " Hello ! My name is Sam,  ";
+welcome[1] = "let's discover this world ! ";
+dialog.push(welcome);
+showDialog = true;
+
+var mapTile;
+function getScreenTile(x, y) { //get tile info from screen x y coord
+    var mapTile = mapSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
+    mapTile += 0.5 * mapSimplex.noise2D(2*(x+cameraX)/scale, 2*(y+cameraY)/scale);
+    mapTile += 0.25 * mapSimplex.noise2D(4*(x+cameraX)/scale, 2*(y+cameraY)/scale);
+    if (mapTile < 0) { mapTile *= -1;}
+    mapTile = Math.pow(mapTile, 0.4);
+    return mapTile;
+}
+
+function getMapTile(x, y) { //get tile info from map x y coord
+    var mapTile = mapSimplex.noise2D(x/scale, y/scale);
+    mapTile += 0.5 * mapSimplex.noise2D(2*x/scale, 2*y/scale);
+    mapTile += 0.25 * mapSimplex.noise2D(4*x/scale, 2*y/scale);
+    if (mapTile < 0) { mapTile *= -1;}
+    mapTile = Math.pow(mapTile, 0.4);
+    return mapTile;
+}
+
+function getMapFoliage(x, y) {
+    var mapFoliage = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
+    if (mapFoliage < 0) { mapFoliage *= -1;}
+    return mapFoliage;
+}
+
+var logs = "";
+var test = "";
+var renderScreen = true;
+function render(){
+    if (renderScreen) {
+        if (rendered) {
+            rendered = false;
+
+            getPlayerSprites();
+
+            projectionPlayerX = Math.floor(playerX * scale);
+            projectionPlayerY = Math.floor(playerY * scale);
+
+            moveCamera();
+
+            if (requestCameraCenter){
+                centerCamera();
+            }
+
+            logs = "";
+            logs += "real player coord (" + playerX+","+playerY+")\n";
+            logs += "map projection coord (" + projectionPlayerX+","+projectionPlayerY+")\n";
+            logs += "scale "+scale+"\n";
+            logs += "frame  "+frame+"\n";
+
+            var ui = "";
+            if (!fullscreen){
+                ui += gradientGrey1+"                                        \n";
+                ui += gradientGrey0+"                                        \n";
+                ui += gradientGrey0+"  "+gradientGrey103+magenta+"════════════════════"+white+"UNICODE MATRIX"+magenta+"══"+gradientGrey0+"  \n";
+            } else {
+                ui += gradientGrey0+"                                                                        \n";
+                ui += gradientGrey0+"  "+gradientGrey103+magenta+"════════════════════════════════════════════════════"+white+"UNICODE MATRIX"+magenta+"══"+gradientGrey0+"  \n";
+            }
+
+            var lines = [];
+
+            switch(currentScreen) {
+                case INTROSCREEN :
+                    for (var i=0; i<screenHeight;i++){
+                        if (i==Math.floor(introScroll)){
+                            lines.push(black+gradientWhite0+"             B3IRD ®            "+fullscreenMarge);        
+                        } else {
+                            lines.push(gradientWhite0+"                                "+fullscreenMarge);        
+                        }
+                    }
+                    if (introScroll<screenHeight/2) {
+                        introScroll+=0.4;
+                    } else {
+                        if (timeIntro<=0){
+                            currentScreen = HOMESCREEN;
+                        }
+                        timeIntro -= 1000/fps;
+                    }
+                    break;
+                case COMPATSCREEN : //display emojis test
+                    lines.push(white+gradientBlack+"╔══════════"+green+"COMPATIBILITY"+white+"═══════╗"+fullscreenMarge);
+                    lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║Player                        ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║👩 🙍‍ 🙎 🙅 🙆 💁 🙋 🤦 🤷 🙇 ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║Items                         ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║🪓 ⛏ 🔨                       ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║Interface                     ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║❤️ 💔                          ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║Animals                       ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║🐈 🐖 🐟                      ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║Environment                   ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║🌳 🌲 🌴 🌵 🎄                ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"║                              ║"+fullscreenMarge);
+                    lines.push(gradientBlack+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
+                    break;
+                case HOMESCREEN:
+                    lines.push(gradientBlue2+"                                "+fullscreenMarge);
+                    lines.push(white+gradientBlue2+"     ☁️                       🌤️  "+fullscreenMarge);
+                    lines.push(brightWhite+gradientBlue1+"            UNIWORLD            "+fullscreenMarge);
+                    lines.push(gradientBlue1+"                        ☁️       "+fullscreenMarge);
+                    lines.push(gradientBlue0+"                                "+fullscreenMarge);
+                    lines.push(gradientBlue0+" 🌲🌳🌲  🌲    🌲🌲  🌳  🌲🌲   "+fullscreenMarge);
+                    lines.push(gradientGreen4+" 🌲              🌲🌲  🏕️   🌲🌲 "+fullscreenMarge);
+                    lines.push(gradientGreen4+" 🌲🌲                           "+fullscreenMarge);
+                    lines.push(gradientGreen3+"                                "+fullscreenMarge);
+
+                    if (homeCursor == 0) {
+                        lines.push(gradientGreen3+"          👉 "+black+"Play               "+fullscreenMarge);
+                    } else {
+                        lines.push(gradientGreen3+"          🧒 "+white+"Play               "+fullscreenMarge);
+                    }
+                    if (homeCursor == 1) {
+                        lines.push(gradientGreen2+"          👉 "+black+"Options            "+fullscreenMarge);
+                    } else {
+                        lines.push(gradientGreen2+"          ⚙️  "+white+"Options            "+fullscreenMarge);
+                    }
+                    if (homeCursor == 2) {
+                        lines.push(gradientGreen2+"          👉 "+black+"About              "+fullscreenMarge);
+                    } else {
+                        lines.push(gradientGreen2+"          📄 "+white+"About              "+fullscreenMarge);
+                    }
+                    if (homeCursor == 3) {
+                        lines.push(gradientGreen1+"          👉 "+black+"Exit               "+fullscreenMarge);
+                    } else {
+                        lines.push(gradientGreen1+"          🚪 "+white+"Exit               "+fullscreenMarge);
+                    }
+                    lines.push(gradientGreen1+"                                "+fullscreenMarge);
+                    lines.push(gradientGreen0+"                                "+fullscreenMarge);
+                    lines.push(gradientGreen0+"      "+green+"© '20.'21  B3IRD inc.     "+fullscreenMarge+reset);
+                    break;
+                case INVENTORYSCREEN:
+                    lines.push(white+gradientBrown1+"╔═══════════"+black+"BACKPACK"+white+"═══════════╗"+fullscreenMarge);
+                    for(var i=0; i<inventoryMaxRows; i++) {
+                        var line = "";
+                        if(i+inventoryScroll == inventoryCursor) {
+                            inventorySelectedItem = inventoryItems[i+inventoryScroll];
+                            line += black;
+                        } else {
+                            line += white;
+                        }
+
+                        var itemName = "";
+                        if(inventoryItems.length >i+inventoryScroll) {
+                            itemName += " "+inventoryItems[i+inventoryScroll]["sprite"]+" "+inventoryItems[i+inventoryScroll]["name"]+" x"+inventoryItems[i+inventoryScroll]["count"]
+                        }
+                        line += itemName;
+                        if (itemName.length > 0){
+                            line = formatLine(line, 34);
+                        } else {
+                            line = formatLine(line, 35);
+                        }
+                        //end line with ui
+                        line += fullscreenMarge;
+
+                        lines.push(white+gradientBrown1+"║"+gradientBrown0+line+white+gradientBrown1+"║");
+                    }
+
+                    lines.push(white+gradientBrown1+"╚══════════════════════════════╝"+fullscreenMarge+reset);
+                    break;
+                case DETAILSCREEN:
+                    logs += "details of "+detailsItem["name"];
+                    lines.push(white+gradientBrown1+"╔═══════╦════"+black+"DETAILS"+white+"═══════════╗"+fullscreenMarge);
+                    lines.push(gradientBrown1+"║       ║"+gradientBrown0+"                      "+gradientBrown1+"║"+fullscreenMarge);
+
+                    var title = formatLine("  "+detailsItem["sprite"]+"   ║"+gradientBrown0+black+" Name : "+white+detailsItem["name"], 50);
+                    lines.push(gradientBrown1+"║"+title+gradientBrown1+"║"+fullscreenMarge);
+                    lines.push(gradientBrown1+"║       ║"+gradientBrown0+"                      "+gradientBrown1+"║"+fullscreenMarge);
+                    lines.push(gradientBrown1+"╠═══════╝"+gradientBrown0+"                      "+gradientBrown1+"║"+fullscreenMarge);
+
+                    if (detailsItem["required"] != undefined) {
+                        lines.push(gradientBrown1+"║"+gradientBrown0+black+" Required :"+white+"                   "+gradientBrown1+"║"+fullscreenMarge);
+                        for (var i=0; i<detailsItem["required"].length; i++) {
+                            const itemDetails = inventoryItems.find( item => item.name === detailsItem["required"][i]["name"]);
+                            var requirement = formatLine(" ⮡ "+itemDetails["sprite"]+" "+detailsItem["required"][i]["name"]+" x"+detailsItem["required"][0]["count"], 29);
+                            lines.push(gradientBrown1+"║"+gradientBrown0+formatLine(requirement, 29)+gradientBrown1+"║"+fullscreenMarge);
+                        }
+                        for (var i=0; i<(9-detailsItem["required"].length); i++){
+                            lines.push(gradientBrown1+"║"+gradientBrown0+"                              "+gradientBrown1+"║"+fullscreenMarge);
+                        }
+                    } else {
+                        for (var i=0; i<10; i++){
+                            lines.push(gradientBrown1+"║"+gradientBrown0+"                              "+gradientBrown1+"║"+fullscreenMarge);
+                        }
+                    }
+                    
+                    if (detailsItem["required"] != undefined) {
+                        lines.push(gradientBrown1+"╚═Escape══════════EnterToCraft═╝"+fullscreenMarge+reset);
+                    } else {
+                        lines.push(gradientBrown1+"╚═Escape═══════════════════════╝"+fullscreenMarge+reset);
+                    }
+                    break;
+                case OPTIONSCREEN:
+                    lines.push(white+backgroundMagenta+"╔════════════"+black+"OPTIONS"+white+"═══════════╗"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ "+black+"INGAME"+white+"                       ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Use arrows to move player   ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press enter to validate     ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press escape to back        ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press space to do something ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press 'M' to show the map   ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press 'I' to show inventory ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ "+black+"DEBUG"+white+"                        ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press 'F' for fullscreen    ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Use numpad to move camera   ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press '5' to center camera  ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press '-/+' for camera zoom ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"║ -Press 'I' to check compat   ║"+fullscreenMarge);
+                    lines.push(backgroundMagenta+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
+                    break;
+                case ABOUTSCREEN:
+                    lines.push(white+backgroundBlue+"╔═════════════"+black+"ABOUT"+white+"════════════╗"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ 🙋 Hello and welcome on this ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ small open world. I'm B3ird  ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ the developer of this game.  ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ It was a challenge for me to ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ make a colorfull 2D playable ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ world in a terminal.         ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ I hope you will like it !    ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║ Stay tuned for next update ! ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"║                              ║"+fullscreenMarge);
+                    lines.push(backgroundBlue+"╚════════════════════════Escape╝"+fullscreenMarge+reset);
+                    break;
+                case GAMESCREEN:
+                case MAPSCREEN:
+                    var windChange = getRandomInt(20);
+                    if (windChange==1){
+                        if (windDirection == 0){
+                            windDirection = 1;
+                        } else {
+                            windDirection = 0;
+                        }
+                    }
+                    
+
+                    for(var y = 0; y < screenHeight; y++) { 
+                        var line="";
+                        for(var x = 0; x < screenWidth; x++) {
+                            line += renderScreenPixel(x, y);
+                        }
+                        lines.push(line);
+                    }
+
+                    //HUD
+                    var clocks = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"]
+                    var hour = Math.floor((frame/100) % 12);
+                    logs+=hour;
+                    var clock = clocks[hour];
+
+                    var windIndicator = "";
+                    if (windDirection == 0){
+                        windIndicator = "🌬️ ⬅️ ";
+                    } else {
+                        windIndicator = "🌬️ ➡️ ";
+                    }
+
+                    if (currentScreen != MAPSCREEN) {
+                        if (fullscreen){
+                            lines[0] = gradientBlack+"❤️ ❤️ 💔                         "+clock+"                           "+windIndicator;
+                        } else {
+                            lines[0] = gradientBlack+"❤️ 💔💔         "+clock+"           "+windIndicator;
+                        }
+                    }
+
+                    frame++;
+        // 
+                    if (currentScreen != MAPSCREEN && showDialog){
+                        if (dialogIndex<=dialog.length-1) {
+                            playerMoveAllowed = false;
+                            var message = dialog[dialogIndex];
+                            //footer
+                            var footerLines = 1;
+                            if (fullscreen){
+                                lines[lines.length-1] = gradientBlack+"╚═════════════════════════════════════════════════════════"+green+"Enter"+white+"╝";
+                            } else {
+                                lines[lines.length-1] = gradientBlack+"╚═════════════════════════"+green+"Enter"+white+"╝";
+                            }
+
+                            //body
+                            for (var d=0; d<message.length;d++){
+                                lines[lines.length-1-d-footerLines] = gradientBlack+"║ "+message[message.length-1-d]+fullscreenMarge+" ║";
+                            }
+
+                            //header
+                            if (fullscreen){
+                                lines[lines.length-1-message.length-1] = gradientBlack+"╔══════════════════════════════════════════════════════════════╗";    
+                            } else {
+                                lines[lines.length-1-message.length-1] = gradientBlack+"╔══════════════════════════════╗";    
+                            }
+                            
+                        } else {
+                            showDialog = false;
+                            playerMoveAllowed = true;
+                            playerTalk = false;
+                            playerBlocked = false;
+                            playerAsk = false;
+                            playerUse = false;
+                            use = false;
+                        }
+                    }
+                    break;
+            }
+
+            playerMoveApplied = true;
+
+            //display screen
+            for (var l=0; l<lines.length;l++){
+                ui += gradientGrey0+"  "+gradientGrey103+"  "+lines[l]+gradientGrey103+"  "+gradientGrey0+"  \n";   
+            }
+
+            if (!fullscreen){
+                ui += gradientGrey0+"  "+gradientGrey103+"                                    "+gradientGrey0+"  \n";
+                ui += gradientGrey0+"  "+blue+"GAME B3IRD™                           \n";
+                ui += gradientGrey0+"                                        \n";
+                ui += gradientGrey0+"      "+white+gradientBlack+"    "+gradientGrey0+"                      "+gradientMagenta+"    "+gradientGrey0+"    \n";
+                ui += gradientGrey0+"    "+gradientBlack+"        "+gradientGrey0+"                    "+gradientMagenta+"    "+gradientGrey0+"    \n";
+                ui += gradientGrey0+"    "+gradientBlack+"        "+gradientGrey0+"              "+gradientMagenta+"    "+gradientGrey0+blue+"    A     \n";
+                ui += gradientGrey0+"      "+white+gradientBlack+"    "+gradientGrey0+"                "+gradientMagenta+"    "+gradientGrey0+"          \n";
+                ui += gradientGrey0+blue+"                            B           \n";
+                ui += gradientGrey0+"              "+gradientGrey103+"    "+gradientGrey0+"  "+gradientGrey103+"    "+gradientGrey0+"              "+gradientGrey1+"  \n";
+                ui += gradientGrey0+blue+"             START SELECT           "+gradientGrey1+"  "+backgroundBlack+"\n";
+                ui += gradientGrey0+blue+"                                  "+gradientGrey1+"  "+backgroundBlack+"\n";
+                ui += gradientGrey1+"                                "+gradientGrey1+"  "+backgroundBlack+"\n";
+            } else {
+                ui += gradientGrey0+"  "+gradientGrey103+"                                                                    "+gradientGrey0+"  \n";
+                ui += gradientGrey0+"  "+blue+"GAME B3IRD™                                                           \n";
+            }
+            ui += reset;
+
+            console.clear();
+            // console.log(logs+screen+hud);
+
+            // console.log(logs);
+
+            console.log(ui);
+
+            setTimeout(function(){
+                rendered = true;
+            }, 1000/fps);
+        }
+    }
+}
+
+var renderClock;
+var clock = 0;
+var fps = 10;
+function start(){
+    clearInterval(renderClock);
+    renderClock = setInterval(render,clock);
+}
+
+start();
+
+
+function getTileType(x, y){
+    var mapTile = getScreenTile(x,y);
+    var mapFoliage = getMapFoliage(x, y);
+    var foliageType = getFoliageType(mapTile, mapFoliage);
+    return foliageType;//TODO check other types no foliage
+}
+
 function renderScreenPixel(x, y, showPlayer = true) { //all layers
     //deep map
-    mapTile = getScreenTile(x,y);
+    var mapTile = getScreenTile(x,y);
 
     //inventoryItems map
     // var mapItem = itemSimplex.noise2D((x+cameraX)/scale, (y+cameraY)/scale);
@@ -628,37 +613,47 @@ function renderScreenPixel(x, y, showPlayer = true) { //all layers
     if (showPlayer && projectionPlayerX == (x+cameraX) && projectionPlayerY == (y+cameraY)){
         return renderMap(mapTile, true)+playerSprites[frame%playerSprites.length]+reset;
     } else {
-        // var i = renderItem(mapItem);
-        // if (i != ""){
-            // return renderMap(mapTile, true)+i+reset;
-        // } else {
-            var f = renderFoliage(mapTile, mapFoliage);
-            if (f != ""){
-                return renderMap(mapTile, true)+f+reset;
-            } else {
-                return renderMap(mapTile, false)+reset;
-            }
-        // }
+        var f = renderFoliage(getFoliageType(mapTile, mapFoliage));
+        if (f != ""){
+            return renderMap(mapTile, true)+f+reset;
+        } else {
+            return renderMap(mapTile, false)+reset;
+        }
     }
 }
 
-function renderFoliage(mapTile, mapFoliage){
+function getFoliageType(mapTile, mapFoliage){
     var foliage = "";
     if (0.65 <= mapTile && mapTile < 0.75){
         if (mapFoliage < 0.1){ //10%
-            foliage = treeSprite;    
+            foliage = "tree";    
         }
     } else if (0.75 <= mapTile && mapTile < 0.85) {
         if (mapFoliage < 0.3){ //30%
-            foliage = pineSprite;
+            foliage = "pine";
         }
     } else if (0.4 <= mapTile && mapTile < 0.55) {
         if (mapFoliage < 0.05){ //5%
-            foliage = cactus;
+            foliage = "cactus";
         }
     }
-
     return foliage;
+}
+
+function renderFoliage(type){
+    var sprite = "";
+    switch(type){
+        case "tree":
+            sprite = treeSprite;
+            break;
+        case "pine":
+            sprite = pineSprite;
+            break;
+        case "cactus":
+            sprite = cactusSprite;
+            break;
+    }
+    return sprite;
 }
 
 function renderItem(val){
@@ -786,13 +781,28 @@ function playerAction() {
         var x = projectionPlayerX-cameraX;
         var y = projectionPlayerY-cameraY;
 
-        //talk about it
-        var useDialog = [];
-        useDialog[0] = " What can I do with "+renderScreenPixel(x,y, false)+gradientBlack+" ?    ";
-        useDialog[1] = "                            ";
-        dialog.push(useDialog);
-        playerAsk = true;
-        showDialog = true;
+        
+
+        var pixelType = getTileType(x,y);
+        switch(pixelType){
+            case "tree":
+                var useDialog = [];
+                useDialog[0] = " 🍂 Sam took a leaf and put ";
+                useDialog[1] = " it in the bag !            ";
+                dialog.push(useDialog);
+                showDialog = true;
+                var leafItem = getItem("leaf")
+                leafItem["count"]++;
+                break;
+            default:
+                //talk about it
+                var useDialog = [];
+                useDialog[0] = " What can I do with "+renderScreenPixel(x,y, false)+gradientBlack+" ?    ";
+                useDialog[1] = "                            ";
+                dialog.push(useDialog);
+                playerAsk = true;
+                showDialog = true;
+        }
     }
 }
 
@@ -847,24 +857,27 @@ function inputListener(key) {
             process.exit();
             break;
         case enter:
-            //TODO manage enter on all screens
-            if (currentScreen == GAMESCREEN) {
-                if (showDialog) {
-                    dialogIndex++;
-                }
-            }
             switch(currentScreen){
                 case HOMESCREEN:
-                    currentScreen = GAMESCREEN;
+                    switch (homeCursor) {
+                        case 0:
+                            currentScreen = GAMESCREEN;
+                            break;
+                        case 1:
+                            currentScreen = OPTIONSCREEN;
+                            break;
+                        case 2:
+                            currentScreen = ABOUTSCREEN;
+                            break;
+                        case 3:
+                            process.exit(1);
+                    }
                     break;
                 case GAMESCREEN :
                     if (showDialog) {
                         dialogIndex++;
                     }
                     break;
-                // case CRAFTSCREEN :
-                //     currentScreen = DETAILSCREEN;
-                //     detailsItem = craftItems[craftCursor];
                 case INVENTORYSCREEN :
                     currentScreen = DETAILSCREEN;
                     detailsItem = inventoryItems[inventoryCursor];
@@ -886,16 +899,14 @@ function inputListener(key) {
                     break;
             }
             break;
-        case "p":
-            switch(currentScreen){
-                case HOMESCREEN:
-                    currentScreen = GAMESCREEN;
-                    break;
-            }
-            break;
         //player
         case up:
             switch (currentScreen) {
+                case HOMESCREEN:
+                    if (homeCursor > 0){
+                        homeCursor--;
+                    }
+                    break;
                 case GAMESCREEN:
                     if (playerCanMoveTo("up")){
                         playerY -= factor;
@@ -910,18 +921,15 @@ function inputListener(key) {
                         inventoryScroll--;
                     }
                     break;
-                case CRAFTSCREEN:
-                    if (craftCursor > 0){
-                        craftCursor--;
-                    }
-                    if (craftCursor < craftScroll) {
-                        craftScroll--;
-                    }
-                    break;
             }
             break;
         case down:
             switch (currentScreen) {
+                case HOMESCREEN:
+                    if (homeCursor < 3){
+                        homeCursor++;
+                    }
+                    break;
                 case GAMESCREEN:
                     if (playerCanMoveTo("down")){
                         playerY += factor;
@@ -958,18 +966,6 @@ function inputListener(key) {
                 playerMoveApplied = false;
             }
             break;
-        //options
-        case "o":
-            if (currentScreen == HOMESCREEN) {
-                currentScreen = OPTIONSCREEN;
-            }
-            break;
-        //about
-        case "a":
-            if (currentScreen == HOMESCREEN) {
-                currentScreen = ABOUTSCREEN;
-            }
-            break;
         //camera
         case "4"://left
             cameraX--;
@@ -996,16 +992,8 @@ function inputListener(key) {
                     break;
             }
             break;
-        case "c":
-            // switch(currentScreen){
-            //     case GAMESCREEN :
-            //         currentScreen = CRAFTSCREEN;
-            //         break;
-            //     case CRAFTSCREEN :
-            //         currentScreen = GAMESCREEN;
-            //         break;
-            // }
-            // break;
+        case "p": //pause
+            //renderScreen = !renderScreen;
         case "f":
             fullscreen = !fullscreen;
             if (fullscreen) {
@@ -1065,8 +1053,7 @@ function setCharAt(str,index,chr) {
 //complete line to end screen
 function formatLine(startLine, maxCharacters) {
     var endLine = "";
-    // var maxCharacters = 35;
-    var charToAdd = maxCharacters - startLine.length;//countCodePoints(startLine);
+    var charToAdd = maxCharacters - countCodePoints(startLine);//startLine.length;//
     for (var j=0; j<charToAdd; j++) {
         endLine += " ";
     }
@@ -1089,4 +1076,9 @@ function countCodePoints(str) {
       len += 1;
   }
   return len;
+}
+
+function getItem(name) {
+    var item = inventoryItems.find( item => item.name === name);
+    return item;
 }
